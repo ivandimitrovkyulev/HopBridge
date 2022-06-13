@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 
 from time import sleep
 from datetime import datetime
@@ -13,9 +14,8 @@ from src.hopbridge.variables import time_format
 
 
 if len(sys.argv) != 2:
-    sys.exit("Usage: python3 main.py <time to sleep in secs>\n")
+    sys.exit("Usage: python3 main.py input.json\n")
 
-sleep_time = int(sys.argv[-1])
 
 # Send telegram debug message if program terminates
 program_name = os.path.abspath(os.path.basename(__file__))
@@ -30,8 +30,16 @@ in_ntwrk = "ethereum"
 combs_eth = list(product(tokens_eth, networks))
 combs_stb = list(product(tokens_stb, networks))
 
-args_eth = [(chrome_driver, (5, 55, 5), 0.03, in_ntwrk, comb[1], comb[0]) for comb in combs_eth]
-args_stb = [(chrome_driver, (10000, 110000, 10000), 20, in_ntwrk, comb[1], comb[0]) for comb in combs_stb]
+info_dict = json.loads(sys.argv[-1])
+sleep_time = info_dict['sleep_time']
+eth_range = info_dict['eth_range']
+eth_min_arb = info_dict['eth_min_arb']
+stb_range = info_dict['stb_range']
+stb_min_arb = info_dict['stb_min_arb']
+
+
+args_eth = [(chrome_driver, eth_range, eth_min_arb, in_ntwrk, comb[1], comb[0]) for comb in combs_eth]
+args_stb = [(chrome_driver, stb_range, stb_min_arb, in_ntwrk, comb[1], comb[0]) for comb in combs_stb]
 args = args_eth + args_stb
 
 terminal_msg = ""

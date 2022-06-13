@@ -37,18 +37,22 @@ def query_hop(
           f"&destNetwork={dest_network}"
     driver.get(url)
 
+    all_arbs = {}
     try:
-        all_arbs = {}
-
-        xpath = "//*[@id='root']/div/div[3]/div/div/div[1]/div/div/div/div"
+        xpath = "//*[@id='root']/div/div[3]/div/div/div[1]/div/div/div"
         dropdown = WebDriverWait(driver, request_wait_time).until(ec.presence_of_element_located(
             (By.XPATH, xpath)))
         dropdown.click()
 
-        menu = driver.find_elements(By.XPATH, "//*[@id='menu-']/div[3]/ul/li")
-        for option in menu:
+        xpath = "//*[@id='menu-']/div[3]/ul"
+        menu = WebDriverWait(driver, request_wait_time).until(ec.presence_of_element_located(
+            (By.XPATH, xpath)))
+
+        elements = menu.find_elements(By.XPATH, "//*[@id='menu-']/div[3]/ul/li")
+        for option in elements:
             if option.text == token_name:
                 option.click()
+                break
 
         for amount in range(amounts[0], amounts[1], amounts[2]):
 
@@ -86,7 +90,6 @@ def query_hop(
             telegram_send_message(all_arbs[highest_arb])
             log_arbitrage.info(all_arbs[highest_arb])
             print(all_arbs[highest_arb])
-
 
     except Exception:
         log_error.info(f"Error while querying {url}")
