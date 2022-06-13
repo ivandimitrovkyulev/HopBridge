@@ -136,7 +136,4 @@ dmypy.json
 # Log files
 *.log
 
-# Project specific data
-*.json
-
 

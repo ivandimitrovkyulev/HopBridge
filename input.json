@@ -1,0 +1,15 @@
+{
+    "eth_range": [
+        5,
+        55,
+        5
+    ],
+    "eth_min_arb": 0.03,
+    "stb_range": [
+        10000,
+        110000,
+        10000
+    ],
+    "stb_min_arb": 50,
+    "sleep_time": 60
+}
