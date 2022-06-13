@@ -2,7 +2,7 @@ import os
 import sys
 import json
 
-from time import sleep
+from time import sleep, perf_counter
 from datetime import datetime
 from itertools import product
 from atexit import register
@@ -22,36 +22,30 @@ program_name = os.path.abspath(os.path.basename(__file__))
 register(exit_handler_driver, chrome_driver, program_name)
 timestamp = datetime.now().astimezone().strftime(time_format)
 
-tokens_stb = ("USDC", "DAI", "USDT")
-tokens_eth = ("ETH", )
+tokens = ("USDC", "DAI", "USDT")
 networks = ("polygon", "gnosis", "optimism", "arbitrum")
-in_ntwrk = "ethereum"
 
-combs_eth = list(product(tokens_eth, networks))
-combs_stb = list(product(tokens_stb, networks))
+pairs = list(product(tokens, networks))
 
 info_dict = json.loads(sys.argv[-1])
-sleep_time = info_dict['sleep_time']
-eth_range = info_dict['eth_range']
-eth_min_arb = info_dict['eth_min_arb']
-stb_range = info_dict['stb_range']
-stb_min_arb = info_dict['stb_min_arb']
+min_arb = info_dict['min_arb']
+in_network = info_dict['in_network']
 
-
-args_eth = [(chrome_driver, eth_range, eth_min_arb, in_ntwrk, comb[1], comb[0]) for comb in combs_eth]
-args_stb = [(chrome_driver, stb_range, stb_min_arb, in_ntwrk, comb[1], comb[0]) for comb in combs_stb]
-args = args_eth + args_stb
+args = [(chrome_driver, info_dict[pair[0]], min_arb, in_network, pair[1], pair[0]) for pair in pairs]
 
 terminal_msg = ""
-for item in combs_eth + combs_stb:
-    terminal_msg += f"{item[0]}, {in_ntwrk} --> {item[1]}\n"
+for item in pairs:
+    terminal_msg += f"{item[0]}, {in_network} --> {item[1]}\n"
 
 print(f"{timestamp}\n"
       f"Started screening https://app.hop.exchange with the following on the following networks:\n"
       f"{terminal_msg}")
 
 while True:
+    start = perf_counter()
     for arg in args:
         query_hop(*arg)
+    end = perf_counter()
+    print(end - start)
 
-    sleep(sleep_time)
+    sleep(info_dict['sleep_time'])

@@ -1,15 +1,20 @@
 {
-    "eth_range": [
-        5,
-        55,
-        5
-    ],
-    "eth_min_arb": 0.03,
-    "stb_range": [
+    "USDC": [
         10000,
         110000,
         10000
     ],
-    "stb_min_arb": 50,
-    "sleep_time": 120
+    "DAI": [
+        10000,
+        110000,
+        10000
+    ],
+    "USDT": [
+        20000,
+        40000,
+        10000
+    ],
+    "min_arb": 50,
+    "in_network": "ethereum",
+    "sleep_time": 0
 }
