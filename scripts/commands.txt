@@ -1,0 +1,1 @@
+docker run --shm-size="2g" -it <image-id> python3 main.py <sleep>
