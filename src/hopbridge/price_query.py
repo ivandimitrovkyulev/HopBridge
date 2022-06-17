@@ -42,15 +42,16 @@ def query_hop(
 
         for amount in range(amounts[0], amounts[1], amounts[2]):
 
-            in_xpath = "//*[@id='root']/div/div[3]/div/div/div[2]/div[2]/div[2]/div/input"
+            xpath = "//*[@id='root']/div/div[3]/div/div/div[2]/div[2]/div[2]/div/input"
             in_field = WebDriverWait(driver, request_wait_time).until(ec.presence_of_element_located(
-                (By.XPATH, in_xpath)))
+                (By.XPATH, xpath)))
 
+            # Clear the entire field
             in_field.send_keys(Keys.CONTROL + "a")
             in_field.send_keys(Keys.DELETE)
             in_field.send_keys(Keys.COMMAND + "a")
             in_field.send_keys(Keys.DELETE)
-
+            # Fill in swap amount
             in_field.send_keys(amount)
 
             out_xpath = "//*[@id='root']/div/div[3]/div/div/div[4]/div[2]/div[2]/div/input"

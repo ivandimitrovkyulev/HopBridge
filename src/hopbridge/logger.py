@@ -33,3 +33,4 @@ def logger_setup(
 # Configure logging settings
 log_error = logger_setup("error", "scripts/logs/error.log")
 log_arbitrage = logger_setup("arbitrage", "scripts/logs/arbitrage.log")
+log_txns = logger_setup("txns", "scripts/logs/txns.log")

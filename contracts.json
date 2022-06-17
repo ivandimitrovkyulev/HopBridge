@@ -1,0 +1,10 @@
+{
+    "name": "optimism_dai",
+    "info": {
+        "address": "0xb3C68a491608952Cb1257FC9909a537a0173b63B",
+        "network": "Optimism",
+        "token": "DAI",
+        "decimals": 18,
+        "min_amount": 20000
+    }
+}
