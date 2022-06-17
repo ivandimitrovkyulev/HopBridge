@@ -1,7 +1,7 @@
 <h1>HopBridge</h1>
 <h3>version 0.1.0</h3>
 
-Screener that follows specified blockchain wallets and notifies when a new transaction occurs via Telegram message.
+Program that screens https://hop.exchange for arbitrage and etherscan for contract transactions and alerts via a Telegram message.
 
 <br> 
 
@@ -13,7 +13,7 @@ This project uses **Python 3.9** and requires a
 
 Clone the project:
 ```
-git clone https://github.com/ivandimitrovkyulev/HopBridge.git
+git clone https://github.com/ivandimitrovkyulev/HopBridge
 
 cd HopBridge
 ```
@@ -52,10 +52,15 @@ NODE_API_KEY=<etherscan-api-key>
 ## Running the script
 <br/>
 
+To screen the hop-bridge website:
 ```
 var="$(cat input.json)"
 python3 main.py "$var"
+```
+<br>
 
+To screen etherscan for contract transactions:
+```
 var="$(cat contracts.json)"
 python3 etherscan.py "$var"
 ```

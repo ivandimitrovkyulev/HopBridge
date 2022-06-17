@@ -6,9 +6,9 @@ from src.hopbridge import __version__
 # Create CLI interface
 parser = ArgumentParser(
     usage="python3 %(prog)s <command> <input file>\n",
-    description="Screener that looks for arbitrage opportunities between 2 tokens and notifies about the spot price "
-                "difference via a Telegram message. "
-                "Visit https://github.com/ivandimitrovkyulev/ArbScreener for more info.",
+    description="Program that screens https://hop.exchange for arbitrage and etherscan for contract transactions. "
+                "and alerts via a Telegram message."
+                "Visit https://github.com/ivandimitrovkyulev/HopBridge for more info.",
     epilog=f"Version - {__version__}",
 )
 
