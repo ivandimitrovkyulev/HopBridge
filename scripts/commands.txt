@@ -1,3 +1,5 @@
 var="$(cat input.json)"
 docker run --shm-size="2g" -it <image-id> python3 main.py "$var"
 
+var="$(cat contracts.json)"
+docker run -it <image-id> python3 etherscan.py "$var"

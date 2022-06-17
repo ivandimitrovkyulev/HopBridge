@@ -7,8 +7,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from src.hopbridge.variables import request_wait_time
 from src.hopbridge.variables import time_format
-from src.hopbridge.message import telegram_send_message
-from src.hopbridge.logger import (
+from src.hopbridge.common.message import telegram_send_message
+from src.hopbridge.common.logger import (
     log_arbitrage,
     log_error,
 )

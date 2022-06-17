@@ -6,7 +6,7 @@ from requests import (
     post,
     Response,
 )
-from src.hopbridge.logger import log_error
+from src.hopbridge.common.logger import log_error
 from src.hopbridge.variables import (
     TOKEN,
     CHAT_ID_ALERTS,

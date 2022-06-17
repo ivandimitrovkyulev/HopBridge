@@ -2,19 +2,19 @@ import os
 import sys
 import json
 
-from time import sleep, perf_counter
+from time import sleep
 from datetime import datetime
 from itertools import product
 from atexit import register
 
 from src.hopbridge.driver.driver import chrome_driver
-from src.hopbridge.exceptions import exit_handler_driver
-from src.hopbridge.price_query import query_hop
+from src.hopbridge.common.exceptions import exit_handler_driver
+from src.hopbridge.web.price_query import query_hop
 from src.hopbridge.variables import time_format
 
 
 if len(sys.argv) != 2:
-    sys.exit("Usage: python3 main.py input.json\n")
+    sys.exit(f"Usage: python3 {os.path.basename(__file__)} contracts.json\n")
 
 
 # Send telegram debug message if program terminates
@@ -42,10 +42,7 @@ print(f"{timestamp}\n"
       f"{terminal_msg}")
 
 while True:
-    start = perf_counter()
     for arg in args:
         query_hop(*arg)
-    end = perf_counter()
-    print(end - start)
 
     sleep(info_dict['sleep_time'])

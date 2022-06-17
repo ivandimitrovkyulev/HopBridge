@@ -12,7 +12,7 @@ from selenium.common.exceptions import (
     TimeoutException,
 )
 
-from src.hopbridge.message import telegram_send_message
+from src.hopbridge.common.message import telegram_send_message
 from src.hopbridge.variables import time_format
 
 

@@ -1,10 +1,26 @@
 {
-    "name": "optimism_dai",
-    "info": {
+    "optimism_dai": {
+        "url": "https://optimistic.etherscan.io/address/0xb3C68a491608952Cb1257FC9909a537a0173b63B",
         "address": "0xb3C68a491608952Cb1257FC9909a537a0173b63B",
         "network": "Optimism",
         "token": "DAI",
         "decimals": 18,
-        "min_amount": 20000
+        "min_amount": 1
+    },
+    "optimism_usdt": {
+        "url": "https://optimistic.etherscan.io/address/0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F",
+        "address": "0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F",
+        "network": "Optimism",
+        "token": "USDT",
+        "decimals": 6,
+        "min_amount": 1
+    },
+    "optimism_usdc": {
+        "url": "https://optimistic.etherscan.io/address/0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796",
+        "address": "0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796",
+        "network": "Optimism",
+        "token": "USDC",
+        "decimals": 6,
+        "min_amount": 1
     }
 }
