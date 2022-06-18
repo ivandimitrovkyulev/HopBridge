@@ -12,37 +12,60 @@ from src.hopbridge.variables import time_format
 from src.hopbridge.common.message import telegram_send_message
 
 
+class Network:
+    """
+    Network configuration class.
+    """
+    def __init__(self, name: str):
+        self.name = name.lower()
+
+        if 'arbitrum' in self.name:
+            self.node_api_key = os.getenv("ARBITRUM_API_KEY")
+
+            self.abi_endpoint = "https://api.arbiscan.io/api?module=contract&action=getabi" \
+                                "&address={txn_to}" \
+                                f"&apikey={self.node_api_key}"
+
+            self.url = "https://api.arbiscan.io/api?module=account&action=txlist" \
+                       "&address={address}&startblock=1&endblock=99999999&sort=desc" \
+                       f"&apikey={self.node_api_key}"
+
+            self.message = "{time_stamp}\n" \
+                           "https://optimistic.etherscan.io/tx/{txn_hash}\n" \
+                           "{txn_amount:,} {token_name} swapped on Arbitrum"
+
+        elif 'optimism' in self.name:
+            self.node_api_key = os.getenv("OPTIMISM_API_KEY")
+
+            self.abi_endpoint = "https://api-optimistic.etherscan.io/api?module=contract&action=getabi" \
+                                "&address={txn_to}" \
+                                f"&apikey={self.node_api_key}"
+
+            self.url = "https://api-optimistic.etherscan.io/api?module=account&action=txlist" \
+                       "&address={address}&startblock=0&endblock=99999999&sort=desc" \
+                       f"&apikey={self.node_api_key}"
+
+            self.message = "{time_stamp}\n" \
+                           "https://optimistic.etherscan.io/tx/{txn_hash}\n" \
+                           "{txn_amount:,} {token_name} swapped on Optimism"
+
+
 class EvmContract:
     """
     EVM contract and transaction screener class.
     """
-    def __init__(self, network_name: str):
-        self.network_name = network_name
+    def __init__(self, network: Network):
+        self.network = network
 
-        if 'arbitrum' in network_name.lower():
-            self.node_api_key = os.getenv("ARBITRUM_API_KEY")
-
-        elif 'optimism' in network_name.lower():
-            self.node_api_key = os.getenv("OPTIMISM_API_KEY")
-
-    def create_contract(self, txn_to: str) -> Contract or None:
+    def create_contract(self, txn_to: str) -> Contract:
         """
         Creates a contract instance ready to be interacted with.
 
         :param txn_to: Transaction 'to' address
         :return: web3 Contract instance
         """
-
         # Contract's ABI
-        if 'arbitrum' in self.network_name.lower():
-            abi_endpoint = f"https://api.arbiscan.io/api?module=contract&action=getabi" \
-                           f"&address={txn_to}&apikey={self.node_api_key}"
-
-        elif 'optimism' in self.network_name.lower():
-            abi_endpoint = f"https://api-optimistic.etherscan.io/api?module=contract&action=getabi" \
-                           f"&address={txn_to}&apikey={self.node_api_key}"
-        else:
-            return
+        abi_endpoint = self.network.abi_endpoint.format(txn_to=txn_to)
 
         project_id = os.getenv("PROJECT_ID")
         infura_url = f"https://mainnet.infura.io/v3/{project_id}"
@@ -95,7 +118,7 @@ class EvmContract:
 
         return list_diff
 
-    def get_last_txns(self, address: str, txn_count: int) -> list or None:
+    def get_last_txns(self, address: str, txn_count: int) -> list:
         """
         Gets the last transactions from a specified contract address.
 
@@ -106,17 +129,7 @@ class EvmContract:
         if txn_count < 1:
             txn_count = 1
 
-        if 'arbitrum' in self.network_name.lower():
-            url = f"https://api.arbiscan.io/api?module=account&action=txlist" \
-                  f"&address={address}&startblock=1&endblock=99999999&sort=desc" \
-                  f"&apikey={self.node_api_key}"
-
-        elif 'optimism' in self.network_name.lower():
-            url = f"https://api-optimistic.etherscan.io/api?module=account&action=txlist" \
-                  f"&address={address}&startblock=0&endblock=99999999&sort=desc" \
-                  f"&apikey={self.node_api_key}"
-        else:
-            return
+        url = self.network.url.format(address=address)
 
         txn_dict = requests.get(url).json()
 
@@ -125,9 +138,8 @@ class EvmContract:
 
         return last_transactions
 
-    @staticmethod
-    def alert_checked_txns(txns: list, min_txn_amount: float, contract_instance: Contract,
-                           token_decimals: int, token_name: str, network_name) -> None:
+    def alert_checked_txns(self, txns: list, min_txn_amount: float, contract_instance: Contract,
+                           token_decimals: int, token_name: str) -> None:
         """
         Checks transaction list and alerts if new transaction is important.
 
@@ -135,10 +147,10 @@ class EvmContract:
         :param min_txn_amount: Minimum transfer amount to alert for
         :param contract_instance: A web3 Contract instance to be queried
         :param token_decimals: Number of decimals for this coin being swapped
-        :param token_name: Token name being swapped
-        :param network_name: Name of the blockchain
+        :param token_name: Name of token
         :return: None
         """
+
         for txn in txns:
             # Simulate contract execution and calculate amount
             contract_output = EvmContract.run_contract(contract_instance, txn['input'])
@@ -146,10 +158,9 @@ class EvmContract:
 
             if txn_amount >= min_txn_amount:
                 time_stamp = datetime.now().astimezone().strftime(time_format)
-                message = f"{time_stamp}\n" \
-                          f"https://optimistic.etherscan.io/tx/{txn['hash']}\n" \
-                          f"{txn_amount:,} {token_name} swapped on {network_name}"
+
+                message = self.network.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
+                                                      txn_hash=txn['hash'], token_name=token_name)
 
                 telegram_send_message(message)
                 log_txns.info(message)
-                print(message)
