@@ -9,10 +9,7 @@ from datetime import datetime
 
 from src.hopbridge.variables import time_format
 from src.hopbridge.common.exceptions import exit_handler
-from src.hopbridge.blockchain.evm import (
-    Txns,
-    EvmContract,
-)
+from src.hopbridge.blockchain.evm import EvmContract
 
 
 if len(sys.argv) != 2:
@@ -25,33 +22,34 @@ timestamp = datetime.now().astimezone().strftime(time_format)
 
 # Fetch variables
 info = json.loads(sys.argv[-1])
-
-addresses = [info[contract_name]['address'] for contract_name in info]
-dictionaries = [info[contract_name] for contract_name in info]
-
-
-# Create a contract instance only once and then query multiple times
-contract_instances = [EvmContract.create_contract(Txns.get_last_txns(address, 1)[-1]['to'])
-                      for address in addresses]
-
 print(f"{timestamp} - Started screening:\n")
 pprint(info)
 
+dictionaries = [info[name] for name in info if type(info[name]) == dict]
+
+# Create a contract instance only once and then query multiple times
+networks = {name: EvmContract(name) for name in info['networks']}
+contracts = {item['network']: networks[item['network']].get_last_txns(item['address'], 1)[-1]['to']
+             for item in dictionaries}
+
+
 while True:
 
-    old_txns = [Txns.get_last_txns(address, 50) for address in addresses]
+    old_txns = [networks[item['network']].get_last_txns(item['address'], 50)
+                for item in dictionaries]
 
     # Wait for new transactions to appear
     sleep(5)
 
-    new_txns = [Txns.get_last_txns(address, 50) for address in addresses]
+    new_txns = [networks[item['network']].get_last_txns(item['address'], 50)
+                for item in dictionaries]
 
-    for num, dictionary in enumerate(dictionaries):
+    for num, item in enumerate(dictionaries):
         # If new txns found - check them and send the interesting ones
-        found_txns = Txns.compare_lists(new_txns[num], old_txns[num])
-        Txns.alert_checked_txns(found_txns,
-                                min_txn_amount=dictionary['min_amount'],
-                                contract_instance=contract_instances[num],
-                                token_decimals=dictionary['decimals'],
-                                token_name=dictionary['token'],
-                                network_name=dictionary['network'])
+        found_txns = EvmContract.compare_lists(new_txns[num], old_txns[num])
+        networks[item['network']].alert_checked_txns(txns=found_txns,
+                                                     contract_instance=contracts[item['network']],
+                                                     min_txn_amount=item['min_amount'],
+                                                     token_decimals=item['decimals'],
+                                                     token_name=item['token'],
+                                                     network_name=item['network'])

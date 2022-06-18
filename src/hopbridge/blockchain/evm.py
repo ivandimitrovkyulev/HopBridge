@@ -13,34 +13,44 @@ from src.hopbridge.common.message import telegram_send_message
 
 
 class EvmContract:
+    """
+    EVM contract and transaction screener class.
+    """
+    def __init__(self, network_name: str):
+        self.network_name = network_name
 
-    @staticmethod
-    def create_contract(txn_to: str, node_api_key: str = "", project_id: str = ""):
+        if 'arbitrum' in network_name.lower():
+            self.node_api_key = os.getenv("ARBITRUM_API_KEY")
+
+        elif 'optimism' in network_name.lower():
+            self.node_api_key = os.getenv("OPTIMISM_API_KEY")
+
+    def create_contract(self, txn_to: str) -> Contract or None:
         """
         Creates a contract instance ready to be interacted with.
 
         :param txn_to: Transaction 'to' address
-        :param node_api_key: Your node provider's API_KEY access token
-        :param project_id: Your project ID
         :return: web3 Contract instance
         """
 
-        if node_api_key == "":
-            node_api_key = os.getenv("NODE_API_KEY")
+        # Contract's ABI
+        if 'arbitrum' in self.network_name.lower():
+            abi_endpoint = f"https://api.arbiscan.io/api?module=contract&action=getabi" \
+                           f"&address={txn_to}&apikey={self.node_api_key}"
 
-        if project_id == "":
-            project_id = os.getenv("PROJECT_ID")
+        elif 'optimism' in self.network_name.lower():
+            abi_endpoint = f"https://api-optimistic.etherscan.io/api?module=contract&action=getabi" \
+                           f"&address={txn_to}&apikey={self.node_api_key}"
+        else:
+            return
 
+        project_id = os.getenv("PROJECT_ID")
         infura_url = f"https://mainnet.infura.io/v3/{project_id}"
         w3 = Web3(Web3.HTTPProvider(infura_url))
 
-        # Convert transaction to address to check-sum address
+        # Convert transaction address to check-sum address
         checksum_address = Web3.toChecksumAddress(txn_to)
 
-        # Contract's ABI
-        abi_endpoint = f"https://api-optimistic.etherscan.io/api?module=contract&action=getabi" \
-                       f"&address={txn_to}&" \
-                       f"apikey={node_api_key}"
         abi = json.loads(requests.get(abi_endpoint).text)
 
         # Create contract instance
@@ -62,9 +72,6 @@ class EvmContract:
         _, func_params = contract.decode_function_input(txn_input)
 
         return func_params
-
-
-class Txns:
 
     @staticmethod
     def compare_lists(new_list: list, old_list: list, keyword: str = 'hash') -> list:
@@ -88,26 +95,28 @@ class Txns:
 
         return list_diff
 
-    @staticmethod
-    def get_last_txns(contract_addr: str, txn_count: int, node_api_key: str = "") -> list:
+    def get_last_txns(self, address: str, txn_count: int) -> list or None:
         """
         Gets the last transactions from a specified contract address.
 
-        :param contract_addr: Contract address , eg. 0xb3C68a491608952Cb1257FC9909a537a0173b63B
+        :param address: Contract address
         :param txn_count: Number of transactions to return
-        :param node_api_key: Your node provider's API_KEY access token
         :return: A list of transactions
         """
-
-        if node_api_key == "":
-            node_api_key = os.getenv("NODE_API_KEY")
-
         if txn_count < 1:
             txn_count = 1
 
-        url = f"https://api-optimistic.etherscan.io/api?module=account&action=txlist" \
-              f"&address={contract_addr}&startblock=0&endblock=99999999&sort=desc" \
-              f"&apikey={node_api_key}"
+        if 'arbitrum' in self.network_name.lower():
+            url = f"https://api.arbiscan.io/api?module=account&action=txlist" \
+                  f"&address={address}&startblock=1&endblock=99999999&sort=desc" \
+                  f"&apikey={self.node_api_key}"
+
+        elif 'optimism' in self.network_name.lower():
+            url = f"https://api-optimistic.etherscan.io/api?module=account&action=txlist" \
+                  f"&address={address}&startblock=0&endblock=99999999&sort=desc" \
+                  f"&apikey={self.node_api_key}"
+        else:
+            return
 
         txn_dict = requests.get(url).json()
 
