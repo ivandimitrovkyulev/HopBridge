@@ -5,10 +5,7 @@ import json
 from pprint import pprint
 from atexit import register
 from datetime import datetime
-from time import (
-    sleep,
-    perf_counter,
-)
+from time import sleep
 from src.hopbridge.variables import time_format
 from src.hopbridge.common.exceptions import exit_handler
 from src.hopbridge.blockchain.evm import (
@@ -43,7 +40,6 @@ contract_instances = [contract.create_contract(to_txn)
 
 
 while True:
-    start_time = perf_counter()
 
     old_txns = [contract.get_last_txns(item['address'], 50)
                 for contract, item in zip(evm_contracts, dictionaries)]
@@ -63,6 +59,3 @@ while True:
                                               contract_instance=contract_instances[num],
                                               token_decimals=item['decimals'],
                                               token_name=item['token'])
-
-    end_time = perf_counter()
-    print(f"Loop finished in {end_time - start_time} secs.")

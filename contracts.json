@@ -5,7 +5,7 @@
         "address": "0xb3C68a491608952Cb1257FC9909a537a0173b63B",
         "network": "Optimism",
         "decimals": 18,
-        "min_amount": 5
+        "min_amount": 50000
     },
     "optimism_usdt": {
         "token": "USDT",
@@ -13,7 +13,7 @@
         "address": "0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F",
         "network": "Optimism",
         "decimals": 6,
-        "min_amount": 3
+        "min_amount": 30000
     },
     "optimism_usdc": {
         "token": "USDC",
@@ -21,7 +21,7 @@
         "address": "0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796",
         "network": "Optimism",
         "decimals": 6,
-        "min_amount": 5
+        "min_amount": 50000
     },
     "arbitrum_dai": {
         "token": "DAI",
@@ -29,7 +29,7 @@
         "address": "0xe7F40BF16AB09f4a6906Ac2CAA4094aD2dA48Cc2",
         "network": "Arbitrum",
         "decimals": 18,
-        "min_amount": 5
+        "min_amount": 50000
     },
     "arbitrum_usdt": {
         "token": "USDT",
@@ -37,7 +37,7 @@
         "address": "0xCB0a4177E0A60247C0ad18Be87f8eDfF6DD30283",
         "network": "Arbitrum",
         "decimals": 6,
-        "min_amount": 3
+        "min_amount": 30000
     },
     "arbitrum_usdc": {
         "token": "USDC",
@@ -45,6 +45,6 @@
         "address": "0xe22D2beDb3Eca35E6397e0C6D62857094aA26F52",
         "network": "Arbitrum",
         "decimals": 6,
-        "min_amount": 5
+        "min_amount": 50000
     }
 }

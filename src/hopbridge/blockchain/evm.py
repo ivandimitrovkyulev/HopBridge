@@ -31,7 +31,7 @@ class Network:
                        f"&apikey={self.node_api_key}"
 
             self.message = "{time_stamp}\n" \
-                           "https://optimistic.etherscan.io/tx/{txn_hash}\n" \
+                           "https://arbiscan.io/tx/{txn_hash}\n" \
                            "{txn_amount:,} {token_name} swapped on Arbitrum"
 
         elif 'optimism' in self.name:
