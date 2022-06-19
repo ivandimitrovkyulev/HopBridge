@@ -54,8 +54,9 @@ while True:
         # If new txns found - check them and send the interesting ones
         found_txns = EvmContract.compare_lists(new_txns[num], old_txns[num])
 
-        evm_contracts[num].alert_checked_txns(txns=found_txns,
-                                              min_txn_amount=item['min_amount'],
-                                              contract_instance=contract_instances[num],
-                                              token_decimals=item['decimals'],
-                                              token_name=item['token'])
+        if len(found_txns) > 0:
+            evm_contracts[num].alert_checked_txns(txns=found_txns,
+                                                  min_txn_amount=item['min_amount'],
+                                                  contract_instance=contract_instances[num],
+                                                  token_decimals=item['decimals'],
+                                                  token_name=item['token'])

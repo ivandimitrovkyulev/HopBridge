@@ -7,7 +7,10 @@ from datetime import datetime
 from web3 import Web3
 from web3.contract import Contract
 
-from src.hopbridge.common.logger import log_txns
+from src.hopbridge.common.logger import (
+    log_txns,
+    log_error,
+)
 from src.hopbridge.variables import time_format
 from src.hopbridge.common.message import telegram_send_message
 
@@ -131,7 +134,11 @@ class EvmContract:
 
         url = self.network.url.format(address=address)
 
-        txn_dict = requests.get(url).json()
+        try:
+            txn_dict = requests.get(url).json()
+        except Exception:
+            log_error.warning("Error in function 'get_last_txns': Unable to fetch transaction data.")
+            return []
 
         # Get a list with number of txns
         last_transactions = txn_dict['result'][:txn_count]
