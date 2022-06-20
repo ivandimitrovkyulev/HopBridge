@@ -136,14 +136,15 @@ class EvmContract:
 
         try:
             txn_dict = requests.get(url).json()
+
+            # Get a list with number of txns
+            last_transactions = txn_dict['result'][:txn_count]
+
+            return last_transactions
+
         except Exception:
             log_error.warning("Error in function 'get_last_txns': Unable to fetch transaction data.")
             return []
-
-        # Get a list with number of txns
-        last_transactions = txn_dict['result'][:txn_count]
-
-        return last_transactions
 
     def alert_checked_txns(self, txns: list, min_txn_amount: float, contract_instance: Contract,
                            token_decimals: int, token_name: str) -> None:

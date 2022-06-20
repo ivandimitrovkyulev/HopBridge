@@ -32,12 +32,12 @@ def query_hop(
     :param dest_network: Blockchain to receive from
     :param token_name: Token code, eg. USDC
     """
-    driver.get("https://www.google.com/")
-    url = f"https://app.hop.exchange/#/send?token={token_name}&sourceNetwork={src_network}" \
-          f"&destNetwork={dest_network}"
-    driver.get(url)
-
     try:
+        driver.get("https://www.google.com/")
+        url = f"https://app.hop.exchange/#/send?token={token_name}&sourceNetwork={src_network}" \
+              f"&destNetwork={dest_network}"
+        driver.get(url)
+
         all_arbs = {}
 
         for amount in range(amounts[0], amounts[1], amounts[2]):
