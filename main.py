@@ -16,21 +16,20 @@ from src.hopbridge.variables import time_format
 if len(sys.argv) != 2:
     sys.exit(f"Usage: python3 {os.path.basename(__file__)} contracts.json\n")
 
+info = json.loads(sys.argv[-1])
 
 # Send telegram debug message if program terminates
 program_name = os.path.abspath(os.path.basename(__file__))
 register(exit_handler_driver, chrome_driver, program_name)
 timestamp = datetime.now().astimezone().strftime(time_format)
 
-tokens = ("USDC", "DAI", "USDT")
+tokens = tuple(token for token in info.keys() if token != 'settings')
 networks = ("polygon", "gnosis", "optimism", "arbitrum")
 in_network = "ethereum"
 
 pairs = list(product(tokens, networks))
 
-info = json.loads(sys.argv[-1])
-
-args = [(chrome_driver, info[pair[0]], info[pair[0]][3], in_network, pair[1], pair[0])
+args = [(chrome_driver, info[pair[0]], info[pair[0]][3], in_network, pair[1], pair[0], len(tokens))
         for pair in pairs]
 
 msg = ""
@@ -46,7 +45,7 @@ while True:
     for arg in args:
         query_hop(*arg)
 
-    sleep(info['sleep_time'])
+    sleep(info['settings']['sleep_time'])
 
     end = perf_counter()
 

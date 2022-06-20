@@ -21,6 +21,7 @@ def query_hop(
         src_network: str = "ethereum",
         dest_network: str = "gnosis",
         token_name: str = "USDC",
+        no_of_queries: int = 1,
 ) -> None:
     """
     Queries Hop Bridge and checks for arbitrage opportunity.
@@ -31,13 +32,15 @@ def query_hop(
     :param src_network: Blockchain to sell from
     :param dest_network: Blockchain to receive from
     :param token_name: Token code, eg. USDC
+    :param no_of_queries: Number of queries
     """
     url = f"https://app.hop.exchange/#/send?token={token_name}&sourceNetwork={src_network}" \
           f"&destNetwork={dest_network}"
 
     try:
         # In order to refresh the page
-        driver.get("https://www.google.com/")
+        if no_of_queries > 1:
+            driver.get("https://www.google.com/")
 
         driver.get(url)
 
@@ -79,7 +82,7 @@ def query_hop(
             all_arbs[arbitrage] = message
 
         highest_arb = max(all_arbs)
-        if highest_arb > min_arb:
+        if highest_arb > min_arb and highest_arb < amounts[0]:
             telegram_send_message(all_arbs[highest_arb])
             log_arbitrage.info(all_arbs[highest_arb])
             print(all_arbs[highest_arb])
