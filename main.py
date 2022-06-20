@@ -2,7 +2,7 @@ import os
 import sys
 import json
 
-from time import sleep
+from time import sleep, perf_counter
 from datetime import datetime
 from itertools import product
 from atexit import register
@@ -24,25 +24,30 @@ timestamp = datetime.now().astimezone().strftime(time_format)
 
 tokens = ("USDC", "DAI", "USDT")
 networks = ("polygon", "gnosis", "optimism", "arbitrum")
+in_network = "ethereum"
 
 pairs = list(product(tokens, networks))
 
-info_dict = json.loads(sys.argv[-1])
-min_arb = info_dict['min_arb']
-in_network = info_dict['in_network']
+info = json.loads(sys.argv[-1])
 
-args = [(chrome_driver, info_dict[pair[0]], min_arb, in_network, pair[1], pair[0]) for pair in pairs]
+args = [(chrome_driver, info[pair[0]], info[pair[0]][3], in_network, pair[1], pair[0])
+        for pair in pairs]
 
-terminal_msg = ""
-for item in pairs:
-    terminal_msg += f"{item[0]}, {in_network} --> {item[1]}\n"
-
-print(f"{timestamp}\n"
-      f"Started screening https://app.hop.exchange with the following on the following networks:\n"
-      f"{terminal_msg}")
+msg = ""
+for pair in pairs:
+    msg += f"Arb {info[pair[0]][3]} {pair[0]}, " \
+                    f"range {[i for i in range(info[pair[0]][0], info[pair[0]][1], info[pair[0]][2])]}, " \
+                    f"{in_network} --> {pair[1]}\n"
+print(f"{timestamp}\nStarted screening https://app.hop.exchange with the following networks:\n{msg}")
 
 while True:
+    start = perf_counter()
+
     for arg in args:
         query_hop(*arg)
 
-    sleep(info_dict['sleep_time'])
+    sleep(info['sleep_time'])
+
+    end = perf_counter()
+
+    print(end - start)

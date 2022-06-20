@@ -32,10 +32,13 @@ def query_hop(
     :param dest_network: Blockchain to receive from
     :param token_name: Token code, eg. USDC
     """
+    url = f"https://app.hop.exchange/#/send?token={token_name}&sourceNetwork={src_network}" \
+          f"&destNetwork={dest_network}"
+
     try:
+        # In order to refresh the page
         driver.get("https://www.google.com/")
-        url = f"https://app.hop.exchange/#/send?token={token_name}&sourceNetwork={src_network}" \
-              f"&destNetwork={dest_network}"
+
         driver.get(url)
 
         all_arbs = {}
