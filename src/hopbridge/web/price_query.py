@@ -88,4 +88,5 @@ def query_hop(
             print(all_arbs[highest_arb])
 
     except Exception:
-        log_error.info(f"Error while querying {url}")
+        print("Unsuccessful query!")
+        log_error.warning(f"Error while querying {url}")

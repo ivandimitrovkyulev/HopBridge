@@ -26,6 +26,7 @@ timestamp = datetime.now().astimezone().strftime(time_format)
 tokens = tuple(token for token in info.keys() if token != 'settings')
 networks = ("polygon", "gnosis", "optimism", "arbitrum")
 in_network = "ethereum"
+sleep_time = info['settings']['sleep_time']
 
 pairs = list(product(tokens, networks))
 
@@ -45,7 +46,7 @@ while True:
     for arg in args:
         query_hop(*arg)
 
-    sleep(info['settings']['sleep_time'])
+    sleep(sleep_time)
 
     end = perf_counter()
 
