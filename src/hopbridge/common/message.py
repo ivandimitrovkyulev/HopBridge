@@ -55,7 +55,7 @@ def telegram_send_message(
 
     # Construct data for the request
     data = {"chat_id": telegram_chat_id, "text": message_text,
-            "disable_web_page_preview": disable_web_page_preview}
+            "disable_web_page_preview": disable_web_page_preview, "parse_mode": "HTML"}
 
     # send the POST request
     while True:
