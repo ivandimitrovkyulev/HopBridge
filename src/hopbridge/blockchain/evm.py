@@ -114,13 +114,13 @@ class EvmContract:
 
         return list_diff
 
-    def get_last_txns(self, txn_count: int = 1, address: str = "") -> list:
+    def get_last_txns(self, txn_count: int = 1, address: str = "") -> List:
         """
         Gets the last transactions from a specified contract address.
 
         :param txn_count: Number of transactions to return
         :param address: Contract address
-        :return: A list of transactions
+        :return: A list of transaction dictionaries
         """
         if txn_count < 1:
             txn_count = 1
@@ -169,6 +169,9 @@ class EvmContract:
                                               token_name=token_name, network=self.network,
                                               txn_hash=txn['hash'], name=self.name)
 
+                # Send formatted Telegram message
                 telegram_send_message(message)
-                log_txns.info(message)
-                print(message)
+
+                terminal_msg = f"{txn_amount:,} {token_name} swapped on {self.name}"
+                log_txns.info(terminal_msg)
+                print(f"{time_stamp}\n{terminal_msg}")

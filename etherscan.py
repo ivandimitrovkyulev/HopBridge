@@ -2,10 +2,12 @@ import os
 import sys
 import json
 
+from copy import deepcopy
 from pprint import pprint
 from atexit import register
 from datetime import datetime
 from time import sleep
+
 from src.hopbridge.variables import time_format
 from src.hopbridge.common.exceptions import exit_handler
 from src.hopbridge.blockchain.evm import EvmContract
@@ -30,10 +32,8 @@ dictionaries = list(info.values())
 evm_contracts = [EvmContract(item['network'], item['address']) for item in dictionaries]
 
 
+old_txns = [contract.get_last_txns(50) for contract in evm_contracts]
 while True:
-
-    old_txns = [contract.get_last_txns(50) for contract in evm_contracts]
-
     # Wait for new transactions to appear
     sleep(10)
 
@@ -48,3 +48,6 @@ while True:
                                                   min_txn_amount=item['min_amount'],
                                                   token_decimals=item['decimals'],
                                                   token_name=item['token'])
+
+    # Save latest txns in old_txns
+    old_txns = deepcopy(new_txns)
