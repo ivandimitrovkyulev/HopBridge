@@ -69,7 +69,12 @@ def query_hop(
 
             received = float(received.replace(",", ""))
             arbitrage = received - amount
-            arbitrage = round(arbitrage, int(data['decimals'] / 3))
+
+            decimals = int(data['decimals'])
+            if decimals >= 6:
+                arbitrage = round(arbitrage, int(decimals / 3))
+            else:
+                arbitrage = round(arbitrage, decimals)
 
             timestamp = datetime.now().astimezone().strftime(time_format)
             message = f"{timestamp}\n" \

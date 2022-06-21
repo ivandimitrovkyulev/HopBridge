@@ -161,17 +161,21 @@ class EvmContract:
 
             if token_decimals >= 6:
                 txn_amount = round(txn_amount, int(token_decimals / 3))
+            else:
+                txn_amount = round(txn_amount, token_decimals)
+
+            # Construct messages
+            time_stamp = datetime.now().astimezone().strftime(time_format)
+            message = self.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
+                                          token_name=token_name, network=self.network,
+                                          txn_hash=txn['hash'], name=self.name)
+            terminal_msg = f"{txn_amount:,} {token_name} swapped on {self.name}"
+
+            # Log all transactions
+            log_txns.info(terminal_msg)
 
             if txn_amount >= min_txn_amount:
-                time_stamp = datetime.now().astimezone().strftime(time_format)
-
-                message = self.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
-                                              token_name=token_name, network=self.network,
-                                              txn_hash=txn['hash'], name=self.name)
-
                 # Send formatted Telegram message
                 telegram_send_message(message)
 
-                terminal_msg = f"{txn_amount:,} {token_name} swapped on {self.name}"
-                log_txns.info(terminal_msg)
                 print(f"{time_stamp}\n{terminal_msg}")
