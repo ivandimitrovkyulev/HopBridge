@@ -16,8 +16,7 @@ from src.hopbridge.common.logger import (
 
 def query_hop(
         driver: Chrome,
-        amounts: tuple,
-        min_arb: float,
+        data: dict,
         src_network: str = "ethereum",
         dest_network: str = "gnosis",
         token_name: str = "USDC",
@@ -27,8 +26,7 @@ def query_hop(
     Queries Hop Bridge and checks for arbitrage opportunity.
 
     :param driver: Chrome webdriver instance
-    :param amounts: Amount of token to sell
-    :param min_arb: Minimum arb required
+    :param data: Data info with amounts to sell and min. arbitrage
     :param src_network: Blockchain to sell from
     :param dest_network: Blockchain to receive from
     :param token_name: Token code, eg. USDC
@@ -46,7 +44,7 @@ def query_hop(
 
         all_arbs = {}
 
-        for amount in range(amounts[0], amounts[1], amounts[2]):
+        for amount in range(data['start'], data['end'], data['step']):
 
             xpath = "//*[@id='root']/div/div[3]/div/div/div[2]/div[2]/div[2]/div/input"
             in_field = WebDriverWait(driver, request_wait_time).until(ec.presence_of_element_located(
@@ -71,22 +69,30 @@ def query_hop(
 
             received = float(received.replace(",", ""))
             arbitrage = received - amount
+            arbitrage = round(arbitrage, int(data['decimals'] / 3))
 
             timestamp = datetime.now().astimezone().strftime(time_format)
             message = f"{timestamp}\n" \
-                      f"{url}\n" \
                       f"Sell {amount:,} {token_name} {src_network} -> {dest_network}\n" \
+                      f"\t-->Arbitrage: <a href='{url}'>{arbitrage:,} {token_name}</a>\n"
+
+            ter_msg = f"Sell {amount:,} {token_name} {src_network} -> {dest_network}\n" \
                       f"\t-->Arbitrage: {arbitrage:,} {token_name}\n"
 
             # Record all arbs to select the highest later
-            all_arbs[arbitrage] = message
+            all_arbs[arbitrage] = [message, ter_msg]
 
         highest_arb = max(all_arbs)
-        if highest_arb > min_arb and highest_arb < amounts[0]:
-            telegram_send_message(all_arbs[highest_arb])
-            log_arbitrage.info(all_arbs[highest_arb])
-            print(all_arbs[highest_arb])
+        if data['start'] > highest_arb > data['min_arb']:
+            message = all_arbs[highest_arb][0]
+            ter_msg = all_arbs[highest_arb][1]
+            telegram_send_message(message)
+
+            log_arbitrage.info(ter_msg)
+            timestamp = datetime.now().astimezone().strftime(time_format)
+            print(f"{timestamp} - {ter_msg}")
 
     except Exception:
-        print("Unsuccessful query!")
+        timestamp = datetime.now().astimezone().strftime(time_format)
+        print(f"{timestamp} - Unsuccessful query!")
         log_error.warning(f"Error while querying {url}")

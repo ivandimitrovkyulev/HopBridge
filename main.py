@@ -30,14 +30,15 @@ sleep_time = info['settings']['sleep_time']
 
 pairs = list(product(tokens, networks))
 
-args = [(chrome_driver, info[pair[0]], info[pair[0]][3], in_network, pair[1], pair[0], len(tokens))
+args = [(chrome_driver, info[pair[0]], in_network, pair[1], pair[0], len(tokens))
         for pair in pairs]
 
 msg = ""
 for pair in pairs:
-    msg += f"Arb {info[pair[0]][3]} {pair[0]}, " \
-                    f"range {[i for i in range(info[pair[0]][0], info[pair[0]][1], info[pair[0]][2])]}, " \
-                    f"{in_network} --> {pair[1]}\n"
+    data = info[pair[0]]
+    msg += f"Arb {data['min_arb']} {pair[0]}, " \
+           f"range {[i for i in range(data['start'], data['end'], data['step'])]}, " \
+           f"{in_network} --> {pair[1]}\n"
 print(f"{timestamp}\nStarted screening https://app.hop.exchange with the following networks:\n{msg}")
 
 while True:
