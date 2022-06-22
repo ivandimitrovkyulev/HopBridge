@@ -18,7 +18,7 @@ git clone https://github.com/ivandimitrovkyulev/HopBridge
 cd HopBridge
 ```
 
-Create a virtual environment in the current working directory and activate it:
+Activate virtual environment:
 
 ```
 poetry shell
@@ -39,13 +39,13 @@ CHAT_ID_ALERTS=<id-of-telegram-chat-for-alerts>
 
 CHAT_ID_DEBUG=<id-of-telegram-chat-for-debugging>
 
-CHAT_ID_SPECIAL=<id-of-telegram-chat-for-special-alerts>
-
 WEB3_INFURA_PROJECT_ID=<project-id-from-node>
 
 PROJECT_ID=<project-id-from-node>
 
-NODE_API_KEY=<etherscan-api-key>
+OPTIMISM_API_KEY=<etherscan-optimism-api-key>
+
+ARBITRUM_API_KEY=<etherscan-arbitrum-api-key>
 ```
 <br/>
 
@@ -57,6 +57,29 @@ To screen the hop-bridge website:
 var="$(cat input.json)"
 python3 main.py "$var"
 ```
+
+Where **input.json** are variables for screening:
+```
+{
+    "USDC": {
+        "start": 50000,
+        "end": 60000,
+        "step": 10000,
+        "min_arb": 50,
+        "decimals": 6
+    },
+    "USDT": {
+        "start": 30000,
+        "end": 40000,
+        "step": 10000,
+        "min_arb": 50,
+        "decimals": 6
+    },
+    "settings": {
+        "sleep_time": 5
+    }
+}
+```
 <br>
 
 To screen etherscan for contract transactions:
@@ -64,3 +87,27 @@ To screen etherscan for contract transactions:
 var="$(cat contracts.json)"
 python3 etherscan.py "$var"
 ```
+
+Where **contracts.json** are variables for screening:
+```
+{
+    "optimism_usdt": {
+        "token": "USDT",
+        "url": "https://optimistic.etherscan.io/address/0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F",
+        "address": "0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F",
+        "network": "Optimism",
+        "decimals": 6,
+        "min_amount": 30000
+    },
+    "arbitrum_usdc": {
+        "token": "USDC",
+        "url": "https://arbiscan.io/address/0xe22d2bedb3eca35e6397e0c6d62857094aa26f52",
+        "address": "0xe22D2beDb3Eca35E6397e0C6D62857094aA26F52",
+        "network": "Arbitrum",
+        "decimals": 6,
+        "min_amount": 50000
+    }
+}
+```
+<br>
+Contact: ivandkyulev@gmai.com
