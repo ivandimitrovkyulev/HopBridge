@@ -169,7 +169,7 @@ class EvmContract:
             message = self.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
                                           token_name=token_name, network=self.network,
                                           txn_hash=txn['hash'], name=self.name)
-            terminal_msg = f"{txn_amount:,} {token_name} swapped on {self.name}"
+            terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
 
             # Log all transactions
             log_txns.info(terminal_msg)
