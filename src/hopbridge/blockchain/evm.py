@@ -107,14 +107,12 @@ class EvmContract:
         list_diff = []
 
         try:
-            hashes = []
-            for txn in old_list:
-                hashes.append(txn[keyword])
+            hashes = [txn[keyword] for txn in old_list]
 
-            for txn in new_list:
-                if txn[keyword] not in hashes:
-                    list_diff.append(txn)
+            list_diff = [txn for txn in new_list if txn[keyword] not in hashes]
+
         except TypeError:
+
             return []
 
         return list_diff
@@ -172,6 +170,10 @@ class EvmContract:
             # Get a list with number of txns
             last_transactions = txn_dict['result'][:txn_count]
 
+            temp = {t_dict['hash']: t_dict for t_dict in last_transactions}
+
+            last_transactions = [txn for txn in temp.values()]
+
             return last_transactions
 
         except Exception:
@@ -195,10 +197,8 @@ class EvmContract:
             contract_output = EvmContract.run_contract(self.contract_instance, txn['input'])
             txn_amount = float(contract_output['amount']) / (10 ** token_decimals)
 
-            if token_decimals >= 6:
-                txn_amount = round(txn_amount, int(token_decimals / 3))
-            else:
-                txn_amount = round(txn_amount, token_decimals)
+            rounding = int(token_decimals) // 6
+            txn_amount = round(txn_amount, rounding)
 
             # Construct messages
             time_stamp = datetime.now().astimezone().strftime(time_format)
@@ -227,6 +227,9 @@ class EvmContract:
         for txn in txns:
 
             txn_amount = float(int(txn['value']) / 10 ** int(txn['tokenDecimal']))
+            # round txn amount number
+            rounding = int(txn['tokenDecimal']) // 6
+            txn_amount = round(txn_amount, rounding)
             token_name = txn['tokenSymbol']
 
             # Construct messages

@@ -6,7 +6,7 @@
         "token": "hDAI",
         "token_address": "0x56900d66D74Cb14E3c86895789901C9135c95b16",
         "decimals": 18,
-        "min_amount": 50000
+        "min_amount": 49000
     },
     "optimism_usdt": {
         "url": "https://optimistic.etherscan.io/address/0x7D269D3E0d61A05a0bA976b7DBF8805bF844AF3F",
@@ -15,7 +15,7 @@
         "token": "hUSDT",
         "token_address": "0x2057C8ECB70Afd7Bee667d76B4CD373A325b1a20",
         "decimals": 6,
-        "min_amount": 30000
+        "min_amount": 29000
     },
     "optimism_usdc": {
         "url": "https://optimistic.etherscan.io/address/0x2ad09850b0CA4c7c1B33f5AcD6cBAbCaB5d6e796",
@@ -24,7 +24,7 @@
         "token": "hUSDC",
         "token_address": "0x25D8039bB044dC227f741a9e381CA4cEAE2E6aE8",
         "decimals": 6,
-        "min_amount": 50000
+        "min_amount": 49000
     },
     "arbitrum_dai": {
         "url": "https://arbiscan.io/address/0xe7f40bf16ab09f4a6906ac2caa4094ad2da48cc2",
@@ -33,7 +33,7 @@
         "token": "hDAI",
         "token_address": "0x46ae9BaB8CEA96610807a275EBD36f8e916b5C61",
         "decimals": 18,
-        "min_amount": 50000
+        "min_amount": 49000
     },
     "arbitrum_usdt": {
         "url": "https://arbiscan.io/address/0xcb0a4177e0a60247c0ad18be87f8edff6dd30283",
@@ -42,7 +42,7 @@
         "token": "hUSDT",
         "token_address": "0x12e59C59D282D2C00f3166915BED6DC2F5e2B5C7",
         "decimals": 6,
-        "min_amount": 30000
+        "min_amount": 29000
     },
     "arbitrum_usdc": {
         "url": "https://arbiscan.io/address/0xe22d2bedb3eca35e6397e0c6d62857094aa26f52",
@@ -51,6 +51,6 @@
         "token": "hUSDC",
         "token_address": "0x0ce6c85cF43553DE10FC56cecA0aef6Ff0DD444d",
         "decimals": 6,
-        "min_amount": 50000
+        "min_amount": 49000
     }
 }

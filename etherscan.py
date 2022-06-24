@@ -74,8 +74,7 @@ if args.erc20tokentxns:
             found_txns = EvmContract.compare_lists(new_txns[num], old_txns[num])
 
             if len(found_txns) > 0:
-                evm_contracts[num].alert_erc20_txns(txns=found_txns,
-                                                    min_txn_amount=item['min_amount'])
+                evm_contracts[num].alert_erc20_txns(txns=found_txns, min_txn_amount=item['min_amount'])
 
         # Save latest txns in old_txns
         old_txns = deepcopy(new_txns)
