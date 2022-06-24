@@ -20,7 +20,7 @@ class EvmContract:
     """
     EVM contract and transaction screener class.
     """
-    def __init__(self, name: str, address: str):
+    def __init__(self, name: str, bridge_address: str):
 
         networks = {'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io'],
                     'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io']}
@@ -28,7 +28,7 @@ class EvmContract:
             raise ValueError(f"No such network. Choose from: {networks}")
 
         self.name = name.lower()
-        self.address = address.lower()
+        self.bridge_address = bridge_address.lower()
         self.network = networks[self.name][1]
 
         self.node_api_key = os.getenv(f"{self.name}_API_KEY")
@@ -37,16 +37,21 @@ class EvmContract:
                             "&address={txn_to}" \
                             f"&apikey={self.node_api_key}"
 
-        self.url = f"{networks[self.name][0]}/api?module=account&action=txlist" \
-                   "&address={address}&startblock=0&endblock=99999999&sort=desc" \
-                   f"&apikey={self.node_api_key}"
+        self.txn_url = f"{networks[self.name][0]}/api?module=account&action=txlist" \
+                       "&address={address}&startblock=0&endblock=99999999&sort=desc" \
+                       f"&apikey={self.node_api_key}"
+
+        self.erc20_url = f"{networks[self.name][0]}/api?module=account&action=tokentx" \
+                         "&contractaddress={token_address}" \
+                         "&address={bridge_address}&page=1&offset=100&sort=desc" \
+                         f"&apikey={self.node_api_key}"
 
         self.message = "{time_stamp}\n" \
                        "{txn_amount:,} {token_name} swapped on " \
                        "<a href='{network}/tx/{txn_hash}'>{name}</a>"
 
         # Create contract instance
-        to_txn = self.get_last_txns(1, self.address)[-1]['to']
+        to_txn = self.get_last_txns(1, self.bridge_address)[-1]['to']
         self.contract_instance = self.create_contract(to_txn)
 
     def create_contract(self, txn_to: str) -> Contract:
@@ -114,24 +119,24 @@ class EvmContract:
 
         return list_diff
 
-    def get_last_txns(self, txn_count: int = 1, address: str = "") -> List:
+    def get_last_txns(self, txn_count: int = 1, bridge_address: str = "") -> List:
         """
         Gets the last transactions from a specified contract address.
 
         :param txn_count: Number of transactions to return
-        :param address: Contract address
+        :param bridge_address: Contract address
         :return: A list of transaction dictionaries
         """
         if txn_count < 1:
             txn_count = 1
 
-        if address == "":
-            address = self.address
+        if bridge_address == "":
+            bridge_address = self.bridge_address
 
-        url = self.url.format(address=address)
+        txn_url = self.txn_url.format(address=bridge_address)
 
         try:
-            txn_dict = requests.get(url).json()
+            txn_dict = requests.get(txn_url).json()
 
             # Get a list with number of txns
             last_transactions = txn_dict['result'][:txn_count]
@@ -140,6 +145,37 @@ class EvmContract:
 
         except Exception:
             log_error.warning("Error in function 'get_last_txns': Unable to fetch transaction data.")
+            return []
+
+    def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, bridge_address: str = "") -> List:
+        """
+        Gets the latest Token transactions from a specific smart contract address.
+
+        :param token_address: Address of Token contract of interest
+        :param txn_count: Number of transactions to return
+        :param bridge_address: Address of the smart contract interacting with Token
+        :return: A list of transaction dictionaries
+        """
+        if txn_count < 1:
+            txn_count = 1
+
+        token_address = token_address.lower()
+
+        if bridge_address == "":
+            bridge_address = self.bridge_address
+
+        erc20_url = self.erc20_url.format(token_address=token_address, bridge_address=bridge_address)
+
+        try:
+            txn_dict = requests.get(erc20_url).json()
+
+            # Get a list with number of txns
+            last_transactions = txn_dict['result'][:txn_count]
+
+            return last_transactions
+
+        except Exception:
+            log_error.warning("Error in function 'get_last_erc20_txns': Unable to fetch transaction data.")
             return []
 
     def alert_checked_txns(self, txns: list, min_txn_amount: float,
@@ -163,6 +199,35 @@ class EvmContract:
                 txn_amount = round(txn_amount, int(token_decimals / 3))
             else:
                 txn_amount = round(txn_amount, token_decimals)
+
+            # Construct messages
+            time_stamp = datetime.now().astimezone().strftime(time_format)
+            message = self.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
+                                          token_name=token_name, network=self.network,
+                                          txn_hash=txn['hash'], name=self.name)
+            terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
+
+            # Log all transactions
+            log_txns.info(terminal_msg)
+
+            if txn_amount >= min_txn_amount:
+                # Send formatted Telegram message
+                telegram_send_message(message)
+
+                print(f"{time_stamp}\n{terminal_msg}")
+
+    def alert_erc20_txns(self, txns: list, min_txn_amount: float) -> None:
+        """
+        Checks transaction list and alerts if new transaction is important.
+
+        :param txns: List of transactions
+        :param min_txn_amount: Minimum transfer amount to alert for
+        :return: None
+        """
+        for txn in txns:
+
+            txn_amount = float(int(txn['value']) / 10 ** int(txn['tokenDecimal']))
+            token_name = txn['tokenSymbol']
 
             # Construct messages
             time_stamp = datetime.now().astimezone().strftime(time_format)
