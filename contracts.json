@@ -52,5 +52,32 @@
         "token_address": "0x0ce6c85cF43553DE10FC56cecA0aef6Ff0DD444d",
         "decimals": 6,
         "min_amount": 49000
+    },
+    "polygon_dai": {
+        "url": "https://polygonscan.com/address/0x28529fec439cff6d7d1d5917e956dee62cd3be5c",
+        "bridge_address": "0x28529fec439cfF6d7D1D5917e956dEE62Cd3BE5c",
+        "network": "Polygon",
+        "token": "hDAI",
+        "token_address": "0xb8901acB165ed027E32754E0FFe830802919727f",
+        "decimals": 18,
+        "min_amount": 49000
+    },
+    "polygon_usdt": {
+        "url": "https://polygonscan.com/address/0x8741Ba6225A6BF91f9D73531A98A89807857a2B3",
+        "bridge_address": "0x8741Ba6225A6BF91f9D73531A98A89807857a2B3",
+        "network": "Polygon",
+        "token": "hUSDT",
+        "token_address": "0x9F93ACA246F457916E49Ec923B8ed099e313f763",
+        "decimals": 6,
+        "min_amount": 29000
+    },
+    "polygon_usdc": {
+        "url": "https://polygonscan.com/address/0x76b22b8C1079A44F1211D867D68b1eda76a635A7",
+        "bridge_address": "0x76b22b8C1079A44F1211D867D68b1eda76a635A7",
+        "network": "Polygon",
+        "token": "hUSDC",
+        "token_address": "0x9ec9551d4A1a1593b0ee8124D98590CC71b3B09D",
+        "decimals": 6,
+        "min_amount": 49000
     }
 }

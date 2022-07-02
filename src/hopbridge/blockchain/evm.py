@@ -22,8 +22,11 @@ class EvmContract:
     """
     def __init__(self, name: str, bridge_address: str):
 
-        networks = {'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io'],
-                    'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io']}
+        networks = {
+            'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io'],
+            'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io'],
+            'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com']
+        }
         if name.lower() not in networks:
             raise ValueError(f"No such network. Choose from: {networks}")
 
@@ -31,7 +34,7 @@ class EvmContract:
         self.bridge_address = bridge_address.lower()
         self.network = networks[self.name][1]
 
-        self.node_api_key = os.getenv(f"{self.name}_API_KEY")
+        self.node_api_key = os.getenv(f"{self.name.upper()}_API_KEY")
 
         self.abi_endpoint = f"{networks[self.name][0]}/api?module=contract&action=getabi" \
                             "&address={txn_to}" \
@@ -168,13 +171,13 @@ class EvmContract:
             txn_dict = requests.get(erc20_url).json()
 
             # Get a list with number of txns
-            last_transactions = txn_dict['result'][:txn_count]
+            last_txns = txn_dict['result'][:txn_count]
 
-            temp = {t_dict['hash']: t_dict for t_dict in last_transactions}
+            temp = {t_dict['hash']: t_dict for t_dict in last_txns}
 
-            last_transactions = [txn for txn in temp.values()]
+            last_txns_cleaned = [txn for txn in temp.values()]
 
-            return last_transactions
+            return last_txns_cleaned
 
         except Exception:
             log_error.warning("Error in function 'get_last_erc20_txns': Unable to fetch transaction data.")

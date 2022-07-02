@@ -2,6 +2,7 @@ import os
 import sys
 import json
 
+from tqdm import tqdm
 from copy import deepcopy
 from pprint import pprint
 from atexit import register
@@ -29,7 +30,8 @@ pprint(info)
 
 dictionaries = list(info.values())
 # Create a contract instance only once and then query multiple times
-evm_contracts = [EvmContract(item['network'], item['bridge_address']) for item in dictionaries]
+print("Initialising contracts...")
+evm_contracts = [EvmContract(item['network'], item['bridge_address']) for item in tqdm(dictionaries)]
 
 
 if args.transactions:
