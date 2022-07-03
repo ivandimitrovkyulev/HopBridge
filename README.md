@@ -46,6 +46,10 @@ PROJECT_ID=<project-id-from-node>
 OPTIMISM_API_KEY=<etherscan-optimism-api-key>
 
 ARBITRUM_API_KEY=<etherscan-arbitrum-api-key>
+
+POLYGON_API_KEY=<etherscan-polygon-api-key>
+
+GNOSIS_API_KEY=<etherscan-gnosis-api-key>
 ```
 <br/>
 
