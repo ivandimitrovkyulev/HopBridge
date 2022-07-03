@@ -79,5 +79,32 @@
         "token_address": "0x9ec9551d4A1a1593b0ee8124D98590CC71b3B09D",
         "decimals": 6,
         "min_amount": 49000
+    },
+    "gnosis_dai": {
+        "url": "https://blockscout.com/xdai/mainnet/address/0x6C928f435d1F3329bABb42d69CCF043e3900EcF1/token-transfers#address-tabs",
+        "bridge_address": "0x6C928f435d1F3329bABb42d69CCF043e3900EcF1",
+        "network": "Gnosis",
+        "token": "hDAI",
+        "token_address": "0xB1ea9FeD58a317F81eEEFC18715Dd323FDEf45c4",
+        "decimals": 18,
+        "min_amount": 49000
+    },
+    "gnosis_usdt": {
+        "url": "https://blockscout.com/xdai/mainnet/address/0x49094a1B3463c4e2E82ca41b8e6A023bdd6E222f/token-transfers#address-tabs",
+        "bridge_address": "0x49094a1B3463c4e2E82ca41b8e6A023bdd6E222f",
+        "network": "Gnosis",
+        "token": "hUSDT",
+        "token_address": "0x91f8490eC27cbB1b2FaEdd29c2eC23011d7355FB",
+        "decimals": 6,
+        "min_amount": 29000
+    },
+    "gnosis_usdc": {
+        "url": "https://blockscout.com/xdai/mainnet/address/0x76b22b8C1079A44F1211D867D68b1eda76a635A7/token-transfers#address-tabs",
+        "bridge_address": "0x76b22b8C1079A44F1211D867D68b1eda76a635A7",
+        "network": "Gnosis",
+        "token": "hUSDC",
+        "token_address": "0x9ec9551d4A1a1593b0ee8124D98590CC71b3B09D",
+        "decimals": 6,
+        "min_amount": 49000
     }
 }

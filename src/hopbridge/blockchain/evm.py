@@ -25,7 +25,8 @@ class EvmContract:
         networks = {
             'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io'],
             'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io'],
-            'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com']
+            'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com'],
+            'gnosis': ['https://blockscout.com/xdai/mainnet/api', 'https://blockscout.com/xdai/mainnet'],
         }
         if name.lower() not in networks:
             raise ValueError(f"No such network. Choose from: {networks}")
@@ -33,6 +34,7 @@ class EvmContract:
         self.name = name.lower()
         self.bridge_address = bridge_address.lower()
         self.network = networks[self.name][1]
+        self.network_api = networks[self.name][0]
 
         self.node_api_key = os.getenv(f"{self.name.upper()}_API_KEY")
 
@@ -54,8 +56,12 @@ class EvmContract:
                        "<a href='{network}/tx/{txn_hash}'>{name}</a>"
 
         # Create contract instance
-        to_txn = self.get_last_txns(1, self.bridge_address)[-1]['to']
-        self.contract_instance = self.create_contract(to_txn)
+        try:
+            to_txn = self.get_last_txns(1, self.bridge_address)[-1]['to']
+            self.contract_instance = self.create_contract(to_txn)
+        except Exception:
+            log_error.warning(f"Could not create a contract instance for {self.name}")
+            self.contract_instance = None
 
     def create_contract(self, txn_to: str) -> Contract:
         """
@@ -107,18 +113,16 @@ class EvmContract:
         :param keyword: Keyword to compare with
         :return: List of dictionaries that are in new list but not in old list
         """
-        list_diff = []
 
         try:
             hashes = [txn[keyword] for txn in old_list]
 
             list_diff = [txn for txn in new_list if txn[keyword] not in hashes]
 
+            return list_diff
+
         except TypeError:
-
             return []
-
-        return list_diff
 
     def get_last_txns(self, txn_count: int = 1, bridge_address: str = "") -> List:
         """
@@ -165,7 +169,10 @@ class EvmContract:
         if bridge_address == "":
             bridge_address = self.bridge_address
 
-        erc20_url = self.erc20_url.format(token_address=token_address, bridge_address=bridge_address)
+        if self.name == 'gnosis':
+            erc20_url = f"{self.network_api}?module=account&action=tokentx&address={self.bridge_address}"
+        else:
+            erc20_url = self.erc20_url.format(token_address=token_address, bridge_address=bridge_address)
 
         try:
             txn_dict = requests.get(erc20_url).json()
@@ -194,30 +201,30 @@ class EvmContract:
         :param token_name: Name of token
         :return: None
         """
+        if self.contract_instance:
+            for txn in txns:
+                # Simulate contract execution and calculate amount
+                contract_output = EvmContract.run_contract(self.contract_instance, txn['input'])
+                txn_amount = float(contract_output['amount']) / (10 ** token_decimals)
 
-        for txn in txns:
-            # Simulate contract execution and calculate amount
-            contract_output = EvmContract.run_contract(self.contract_instance, txn['input'])
-            txn_amount = float(contract_output['amount']) / (10 ** token_decimals)
+                rounding = int(token_decimals) // 6
+                txn_amount = round(txn_amount, rounding)
 
-            rounding = int(token_decimals) // 6
-            txn_amount = round(txn_amount, rounding)
+                # Construct messages
+                time_stamp = datetime.now().astimezone().strftime(time_format)
+                message = self.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
+                                              token_name=token_name, network=self.network,
+                                              txn_hash=txn['hash'], name=self.name)
+                terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
 
-            # Construct messages
-            time_stamp = datetime.now().astimezone().strftime(time_format)
-            message = self.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
-                                          token_name=token_name, network=self.network,
-                                          txn_hash=txn['hash'], name=self.name)
-            terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
+                # Log all transactions
+                log_txns.info(terminal_msg)
 
-            # Log all transactions
-            log_txns.info(terminal_msg)
+                if txn_amount >= min_txn_amount:
+                    # Send formatted Telegram message
+                    telegram_send_message(message)
 
-            if txn_amount >= min_txn_amount:
-                # Send formatted Telegram message
-                telegram_send_message(message)
-
-                print(f"{time_stamp}\n{terminal_msg}")
+                    print(f"{time_stamp}\n{terminal_msg}")
 
     def alert_erc20_txns(self, txns: list, min_txn_amount: float) -> None:
         """

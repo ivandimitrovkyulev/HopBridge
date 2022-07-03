@@ -37,16 +37,16 @@ evm_contracts = [EvmContract(item['network'], item['bridge_address']) for item i
 if args.transactions:
     print("Screening for 'Transactions'...")
 
-    old_txns = [contract.get_last_txns(50) for contract in evm_contracts]
+    old_txns = [contract.get_last_txns(60) for contract in evm_contracts]
     while True:
         # Wait for new transactions to appear
         sleep(10)
 
-        new_txns = [contract.get_last_txns(50) for contract in evm_contracts]
+        new_txns = [contract.get_last_txns(60) for contract in evm_contracts]
 
         for num, item in enumerate(dictionaries):
             # If new txns found - check them and send the interesting ones
-            found_txns = EvmContract.compare_lists(new_txns[num], old_txns[num])
+            found_txns = EvmContract.compare_lists(new_txns[num][:40], old_txns[num])
 
             if len(found_txns) > 0:
                 evm_contracts[num].alert_checked_txns(txns=found_txns,
@@ -61,19 +61,19 @@ if args.transactions:
 if args.erc20tokentxns:
     print("Screening for 'Erc20 Token Txns'...")
 
-    old_txns = [contract.get_last_erc20_txns(item['token_address'], 50)
+    old_txns = [contract.get_last_erc20_txns(item['token_address'], 60)
                 for contract, item in zip(evm_contracts, dictionaries)]
 
     while True:
         # Wait for new transactions to appear
         sleep(10)
 
-        new_txns = [contract.get_last_erc20_txns(item['token_address'], 50)
+        new_txns = [contract.get_last_erc20_txns(item['token_address'], 60)
                     for contract, item in zip(evm_contracts, dictionaries)]
 
         for num, item in enumerate(dictionaries):
             # If new txns found - check them and send the interesting ones
-            found_txns = EvmContract.compare_lists(new_txns[num], old_txns[num])
+            found_txns = EvmContract.compare_lists(new_txns[num][:40], old_txns[num])
 
             if len(found_txns) > 0:
                 evm_contracts[num].alert_erc20_txns(txns=found_txns, min_txn_amount=item['min_amount'])
