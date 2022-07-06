@@ -86,4 +86,4 @@ if args.erc20tokentxns:
         old_txns = deepcopy(new_txns)
 
         loop_end = perf_counter()
-        print(f"Loop executed in {(loop_end - loop_start):,2f} secs.")
+        print(f"Loop executed in {(loop_end - loop_start):,.2f} secs.")
