@@ -1,11 +1,10 @@
-<h1>HopBridge</h1>
-<h3>version 0.1.0</h3>
+# HopBridge v0.2.1
 
-Program that screens https://hop.exchange for arbitrage and etherscan for contract transactions and alerts via a Telegram message.
+Program that screens https://hop.exchange for arbitrage and etherscan networks for contract transactions of specified contract addresses. Alerts via a Telegram message if something of interest is found. Currently supports the following L2 networks: [Optimism](https://optimistic.etherscan.io/), [Arbitrum](https://arbiscan.io/), [Polygon](https://polygonscan.com), [Gnosis](https://blockscout.com/xdai/mainnet/).
 
-<br> 
+<br>
 
-## Installation
+## Installation ##
 <br>
 
 This project uses **Python 3.9** and requires a
@@ -29,7 +28,7 @@ Install all third-party project dependencies:
 poetry install
 ```
 
-You will also need to save the following variables in a **.env** file in .../HopBridge:
+You will need to apply for API access and save the following variables in a **.env** file in .../HopBridge/:
 ```
 CHROME_LOCATION=<your/web/driver/path/location> 
 
@@ -56,7 +55,7 @@ GNOSIS_API_KEY=<etherscan-gnosis-api-key>
 ## Running the script
 <br/>
 
-To screen the hop-bridge website:
+To screen the hop-bridge website for arbitrage:
 ```
 var="$(cat input.json)"
 python3 main.py "$var"
@@ -86,13 +85,17 @@ Where **input.json** are variables for screening:
 ```
 <br>
 
-To screen etherscan for contract transactions:
+To screen network etherscan for Erc20 Token Transactions:
 ```
 var="$(cat contracts.json)"
-python3 etherscan.py "$var"
+python3 etherscan.py -e "$var"
+```
+Or to screen for a contract transaction:
+```
+python3 etherscan.py -t "$var"
 ```
 
-Where **contracts.json** are variables for screening:
+Where **contracts.json** are Network and screening variables of the following schema:
 ```
 {
     "optimism_usdt": {
@@ -110,8 +113,15 @@ Where **contracts.json** are variables for screening:
         "network": "Arbitrum",
         "decimals": 6,
         "min_amount": 50000
-    }
+    },
+    "filter_by": ["to", "0x0000000000000000000000000000000000000000"]
 }
 ```
+
+For help using script:
+```
+python3 etherscan.py --help
+```
+
 <br>
 Contact: ivandkyulev@gmai.com

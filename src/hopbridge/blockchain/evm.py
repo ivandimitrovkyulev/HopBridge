@@ -149,16 +149,18 @@ class EvmContract:
             return last_transactions
 
         except Exception:
-            log_error.warning("Error in function 'get_last_txns': Unable to fetch transaction data.")
+            log_error.warning(f"Error in f'get_last_txns': Unable to fetch transaction data for {self.name}")
             return []
 
-    def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, bridge_address: str = "") -> List:
+    def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, bridge_address: str = "",
+                            filter_by: tuple = ()) -> List:
         """
         Gets the latest Token transactions from a specific smart contract address.
 
         :param token_address: Address of Token contract of interest
         :param txn_count: Number of transactions to return
         :param bridge_address: Address of the smart contract interacting with Token
+        :param filter_by: Filter transactions by field and value, eg. ('to', '0x000...000')
         :return: A list of transaction dictionaries
         """
         if txn_count < 1:
@@ -176,18 +178,26 @@ class EvmContract:
 
         try:
             txn_dict = requests.get(erc20_url).json()
-
             # Get a list with number of txns
             last_txns = txn_dict['result'][:txn_count]
 
-            temp = {t_dict['hash']: t_dict for t_dict in last_txns}
+        except Exception:
+            log_error.warning(f"Error in f'get_last_erc20_txns': Unable to fetch transaction data for {self.name}")
+            return []
+
+        try:
+            if len(filter_by) != 2:
+                temp = {t_dict['hash']: t_dict for t_dict in last_txns}
+            else:
+                temp = {t_dict['hash']: t_dict for t_dict in last_txns
+                        if t_dict[filter_by[0]] == filter_by[1]}
 
             last_txns_cleaned = [txn for txn in temp.values()]
 
             return last_txns_cleaned
 
         except Exception:
-            log_error.warning("Error in function 'get_last_erc20_txns': Unable to fetch transaction data.")
+            log_error.warning(f"Error in f'get_last_erc20_txns': Unable to filter info for {self.name}")
             return []
 
     def alert_checked_txns(self, txns: list, min_txn_amount: float,
@@ -256,4 +266,4 @@ class EvmContract:
                 # Send formatted Telegram message
                 telegram_send_message(message)
 
-                print(f"{time_stamp}\n{terminal_msg}")
+                print(f"{time_stamp} - {terminal_msg}")

@@ -7,7 +7,7 @@ from copy import deepcopy
 from pprint import pprint
 from atexit import register
 from datetime import datetime
-from time import sleep
+from time import sleep, perf_counter
 
 from src.hopbridge.blockchain.interface import args
 from src.hopbridge.variables import time_format
@@ -26,9 +26,10 @@ register(exit_handler, program_name)
 info = json.loads(sys.argv[-1])
 timestamp = datetime.now().astimezone().strftime(time_format)
 print(f"{timestamp} - Started screening:\n")
-pprint(info)
 
-dictionaries = list(info.values())
+dictionaries = [dictionary for dictionary in info.values() if type(dictionary) is dict]
+pprint(dictionaries)
+
 # Create a contract instance only once and then query multiple times
 print("Initialising contracts...")
 evm_contracts = [EvmContract(item['network'], item['bridge_address']) for item in tqdm(dictionaries)]
@@ -61,14 +62,17 @@ if args.transactions:
 if args.erc20tokentxns:
     print("Screening for 'Erc20 Token Txns'...")
 
-    old_txns = [contract.get_last_erc20_txns(item['token_address'], 100)
+    filter_by = tuple(info['filter_by'])
+
+    old_txns = [contract.get_last_erc20_txns(item['token_address'], 100, filter_by=filter_by)
                 for contract, item in zip(evm_contracts, dictionaries)]
 
     while True:
+        loop_start = perf_counter()
         # Wait for new transactions to appear
         sleep(10)
 
-        new_txns = [contract.get_last_erc20_txns(item['token_address'], 100)
+        new_txns = [contract.get_last_erc20_txns(item['token_address'], 100, filter_by=filter_by)
                     for contract, item in zip(evm_contracts, dictionaries)]
 
         for num, item in enumerate(dictionaries):
@@ -80,3 +84,6 @@ if args.erc20tokentxns:
 
         # Save latest txns in old_txns
         old_txns = deepcopy(new_txns)
+
+        loop_end = perf_counter()
+        print(f"Loop executed in {(loop_end - loop_start):,2f} secs.")

@@ -106,5 +106,6 @@
         "token_address": "0x9ec9551d4A1a1593b0ee8124D98590CC71b3B09D",
         "decimals": 6,
         "min_amount": 49000
-    }
+    },
+    "filter_by": ["to", "0x0000000000000000000000000000000000000000"]
 }
