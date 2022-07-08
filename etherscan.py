@@ -46,6 +46,9 @@ if args.transactions:
         new_txns = [contract.get_last_txns(100) for contract in evm_contracts]
 
         for num, item in enumerate(dictionaries):
+            if len(new_txns[num]) == 0 or len(new_txns[num]) == 0:
+                continue
+
             # If new txns found - check them and send the interesting ones
             found_txns = EvmContract.compare_lists(new_txns[num], old_txns[num])
 
@@ -68,7 +71,6 @@ if args.erc20tokentxns:
                 for contract, item in zip(evm_contracts, dictionaries)]
 
     while True:
-        loop_start = perf_counter()
         # Wait for new transactions to appear
         sleep(10)
 
@@ -76,6 +78,9 @@ if args.erc20tokentxns:
                     for contract, item in zip(evm_contracts, dictionaries)]
 
         for num, item in enumerate(dictionaries):
+            if len(new_txns[num]) == 0 or len(new_txns[num]) == 0:
+                continue
+
             # If new txns found - check them and send the interesting ones
             found_txns = EvmContract.compare_lists(new_txns[num], old_txns[num])
 
@@ -84,6 +89,3 @@ if args.erc20tokentxns:
 
         # Save latest txns in old_txns
         old_txns = deepcopy(new_txns)
-
-        loop_end = perf_counter()
-        print(f"Loop executed in {(loop_end - loop_start):,.2f} secs.")

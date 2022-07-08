@@ -118,7 +118,7 @@ Where **contracts.json** are Network and screening variables of the following sc
 }
 ```
 
-For help using script:
+For help:
 ```
 python3 etherscan.py --help
 ```

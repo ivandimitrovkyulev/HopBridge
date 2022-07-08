@@ -140,17 +140,29 @@ class EvmContract:
 
         txn_url = self.txn_url.format(address=bridge_address)
 
-        try:
-            txn_dict = requests.get(txn_url).json()
+        if self.name == 'gnosis':
+            txn_url = f"{self.network_api}?module=account&action=txlist&address={self.bridge_address}"
+        else:
+            txn_url = self.txn_url.format(address=bridge_address)
 
-            # Get a list with number of txns
-            last_transactions = txn_dict['result'][:txn_count]
+        counter = 1
+        while True:
+            try:
+                txn_dict = requests.get(txn_url).json()
 
-            return last_transactions
+                # Get a list with number of txns
+                last_transactions = txn_dict['result'][:txn_count]
 
-        except Exception:
-            log_error.warning(f"Error in f'get_last_txns': Unable to fetch transaction data for {self.name}")
-            return []
+            except Exception:
+                log_error.warning(f"Error in f'get_last_txns': Unable to fetch transaction data for {self.name}"
+                                  f"Attempt: {counter}")
+                counter += 1
+                if counter > 5:
+                    return []
+
+            # If response returned - break
+            else:
+                return last_transactions
 
     def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, bridge_address: str = "",
                             filter_by: tuple = ()) -> List:
@@ -176,14 +188,23 @@ class EvmContract:
         else:
             erc20_url = self.erc20_url.format(token_address=token_address, bridge_address=bridge_address)
 
-        try:
-            txn_dict = requests.get(erc20_url).json()
-            # Get a list with number of txns
-            last_txns = txn_dict['result'][:txn_count]
+        counter = 1
+        while True:
+            try:
+                txn_dict = requests.get(erc20_url).json()
+                # Get a list with number of txns
+                last_txns = txn_dict['result'][:txn_count]
 
-        except Exception:
-            log_error.warning(f"Error in f'get_last_erc20_txns': Unable to fetch transaction data for {self.name}")
-            return []
+            except Exception:
+                log_error.warning(f"Error in f'get_last_erc20_txns': Unable to fetch transaction data for {self.name}"
+                                  f"Attempt: {counter}")
+                counter += 1
+                if counter > 5:
+                    return []
+
+            # If response returned - break
+            else:
+                break
 
         try:
             if len(filter_by) != 2:
@@ -196,9 +217,8 @@ class EvmContract:
 
             return last_txns_cleaned
 
-        except Exception:
-            log_error.warning(f"Error in f'get_last_erc20_txns': Unable to filter info for {self.name}")
-            return []
+        except KeyError:
+            raise KeyError(f"Error in f'get_last_erc20_txns': Incorrect {filter_by} filter for {self.name}")
 
     def alert_checked_txns(self, txns: list, min_txn_amount: float,
                            token_decimals: int, token_name: str) -> None:
