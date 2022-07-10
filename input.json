@@ -1,7 +1,7 @@
 {
     "USDC": {
-        "start": 50000,
-        "end": 60000,
+        "start": 30000,
+        "end":40000,
         "step": 10000,
         "min_arb": 50,
         "decimals": 6
@@ -14,8 +14,8 @@
         "decimals": 6
     },
     "DAI": {
-        "start": 50000,
-        "end": 60000,
+        "start": 30000,
+        "end": 40000,
         "step": 10000,
         "min_arb": 50,
         "decimals": 18
