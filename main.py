@@ -51,4 +51,4 @@ while True:
 
     end = perf_counter()
 
-    print(end - start)
+    print(f"Loop executed in {end - start} secs.")

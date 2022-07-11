@@ -124,12 +124,13 @@ class EvmContract:
         except TypeError:
             return []
 
-    def get_last_txns(self, txn_count: int = 1, bridge_address: str = "") -> List:
+    def get_last_txns(self, txn_count: int = 1, bridge_address: str = "", attempts: int = 3) -> List:
         """
         Gets the last transactions from a specified contract address.
 
         :param txn_count: Number of transactions to return
         :param bridge_address: Contract address
+        :param attempts: Max number of times to repeat GET request
         :return: A list of transaction dictionaries
         """
         if txn_count < 1:
@@ -154,10 +155,10 @@ class EvmContract:
                 last_transactions = txn_dict['result'][:txn_count]
 
             except Exception:
-                log_error.warning(f"Error in f'get_last_txns': Unable to fetch transaction data for {self.name}"
+                log_error.warning(f"Error in f'get_last_txns': Unable to fetch transaction data for {self.name}. "
                                   f"Attempt: {counter}")
                 counter += 1
-                if counter > 5:
+                if counter > attempts:
                     return []
 
             # If response returned - break
@@ -165,7 +166,7 @@ class EvmContract:
                 return last_transactions
 
     def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, bridge_address: str = "",
-                            filter_by: tuple = ()) -> List:
+                            filter_by: tuple = (), attempts: int = 3) -> List:
         """
         Gets the latest Token transactions from a specific smart contract address.
 
@@ -173,6 +174,7 @@ class EvmContract:
         :param txn_count: Number of transactions to return
         :param bridge_address: Address of the smart contract interacting with Token
         :param filter_by: Filter transactions by field and value, eg. ('to', '0x000...000')
+        :param attempts: Max number of times to repeat GET request
         :return: A list of transaction dictionaries
         """
         if txn_count < 1:
@@ -196,10 +198,10 @@ class EvmContract:
                 last_txns = txn_dict['result'][:txn_count]
 
             except Exception:
-                log_error.warning(f"Error in f'get_last_erc20_txns': Unable to fetch transaction data for {self.name}"
+                log_error.warning(f"Error in f'get_last_erc20_txns': Unable to fetch transaction data for {self.name}. "
                                   f"Attempt: {counter}")
                 counter += 1
-                if counter > 5:
+                if counter > attempts:
                     return []
 
             # If response returned - break
