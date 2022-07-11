@@ -39,6 +39,7 @@ if args.transactions:
     print("Screening for 'Transactions'...")
 
     old_txns = [contract.get_last_txns(100) for contract in evm_contracts]
+
     while True:
         # Wait for new transactions to appear
         sleep(10)
@@ -88,3 +89,6 @@ if args.erc20tokentxns:
 
             if len(found_txns) > 0:
                 evm_contracts[i].alert_erc20_txns(txns=found_txns, min_txn_amount=item['min_amount'])
+
+        # Save latest txns in old_txns
+        old_txns = deepcopy(new_txns)
