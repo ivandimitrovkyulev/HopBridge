@@ -5,14 +5,15 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-from src.hopbridge.variables import request_wait_time
-from src.hopbridge.variables import time_format
 from src.hopbridge.common.message import telegram_send_message
 from src.hopbridge.common.logger import (
     log_arbitrage,
     log_error,
 )
-
+from src.hopbridge.variables import (
+    request_wait_time,
+    time_format,
+)
 
 def query_hop(
         driver: Chrome,
@@ -100,4 +101,4 @@ def query_hop(
     except Exception:
         timestamp = datetime.now().astimezone().strftime(time_format)
         print(f"{timestamp} - Unsuccessful query!")
-        log_error.warning(f"Error while querying {url}")
+        log_error.warning(f"Error in 'query_hop' while querying {url}")

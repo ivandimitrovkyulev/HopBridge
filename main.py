@@ -51,4 +51,5 @@ while True:
 
     end = perf_counter()
 
-    print(f"Loop executed in {end - start} secs.")
+    timestamp = datetime.now().astimezone().strftime(time_format)
+    print(f"{timestamp} - Loop executed in {end - start} secs.")
