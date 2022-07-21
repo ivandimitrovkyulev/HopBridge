@@ -13,7 +13,7 @@ ENV PYTHONFAULTHANDLER=1 \
 RUN pip install "poetry==$POETRY_VERSION"
 
 # Copy only requirements to cache them in docker layer
-WORKDIR ./hop-bridge
+WORKDIR ./hop_bridge
 COPY poetry.lock pyproject.toml .
 
 # Project init
@@ -22,8 +22,8 @@ RUN poetry config virtualenvs.create false \
 
 # Copy all project files
 COPY src ./src
-COPY scripts ./scripts
-COPY main.py .env .
+COPY logs ./logs
+COPY .env web.py .
 
 
 # Install Chrome WebDriver

@@ -1,11 +1,10 @@
+import requests
+
 from time import sleep
 from typing import Optional
 
 from requests.exceptions import ConnectionError
-from requests import (
-    post,
-    Response,
-)
+
 from src.hopbridge.common.logger import log_error
 from src.hopbridge.variables import (
     TOKEN,
@@ -20,7 +19,8 @@ def telegram_send_message(
         telegram_token: Optional[str] = "",
         telegram_chat_id: Optional[str] = "",
         debug: bool = False,
-) -> Response:
+        timeout: float = 10,
+) -> requests.Response or None:
     """
     Sends a Telegram message to a specified chat.
     Must have a .env file with the following variables:
@@ -29,21 +29,23 @@ def telegram_send_message(
     Follow telegram's instruction on how to set up a bot using the bot father
     and configure it to be able to send messages to a chat.
 
-    :param message_text: Text to be sent to the chat
+    :param message_text: Text message to send
     :param disable_web_page_preview: Set web preview on/off
-    :param telegram_token: Telegram TOKEN API, default take from .env
+    :param telegram_token: Telegram TOKEN API, default is 'TOKEN' from .env file
     :param telegram_chat_id: Telegram chat ID for alerts, default is 'CHAT_ID_ALERTS' from .env file
-    :param debug: If true sends message to Telegram chat with 'CHAT_ID_DEBUG' from .env file
+    :param debug: If true sends message to Telegram 'CHAT_ID_DEBUG' chat taken from .env file
+    :param timeout: Max secs to wait for POST request
     :return: requests.Response
     """
     telegram_token = str(telegram_token)
     telegram_chat_id = str(telegram_chat_id)
+    message_text = str(message_text)
 
-    # if URL not provided - try TOKEN variable from the .env file
+    # if Token not provided - try TOKEN variable from the .env file
     if telegram_token == "":
         telegram_token = TOKEN
 
-    # if chat_id not provided - try CHAT_ID_ALERTS or CHAT_ID_DEBUG variable from the .env file
+    # if Chat ID not provided - try CHAT_ID_ALERTS or CHAT_ID_DEBUG variable from the .env file
     if telegram_chat_id == "":
         if debug:
             telegram_chat_id = CHAT_ID_DEBUG
@@ -54,16 +56,20 @@ def telegram_send_message(
     url = "https://api.telegram.org/bot{}/sendMessage".format(telegram_token)
 
     # Construct data for the request
-    data = {"chat_id": telegram_chat_id, "text": message_text,
-            "disable_web_page_preview": disable_web_page_preview, "parse_mode": "HTML"}
+    payload = {"chat_id": telegram_chat_id, "text": message_text,
+               "disable_web_page_preview": disable_web_page_preview, "parse_mode": "HTML"}
 
     # send the POST request
-    while True:
-        try:
-            post_request = post(url, data)
+    try:
+        # If too many requests, wait for Telegram's rate limit
+        while True:
+            post_request = requests.post(url=url, data=payload, timeout=timeout)
 
-            return post_request
+            if post_request.json()['ok']:
+                return post_request
 
-        except ConnectionError:
-            log_error.warning(f"Error while trying to send a Telegram message.")
             sleep(3)
+
+    except ConnectionError as e:
+        log_error.warning(f"'telegram_send_message' - {e} - '{message_text})' was not sent.")
+        return None

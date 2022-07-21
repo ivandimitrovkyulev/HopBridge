@@ -4,6 +4,7 @@ import requests
 
 from datetime import datetime
 from typing import List, Dict
+from requests.adapters import HTTPAdapter
 
 from web3 import Web3
 from web3.contract import Contract
@@ -34,44 +35,45 @@ class EvmContract:
         self.name = name.lower()
         self.bridge_address = bridge_address.lower()
         self.network = networks[self.name][1]
-        self.network_api = networks[self.name][0]
+        self.api = networks[self.name][0]
+        self.session = requests.Session()
 
         self.node_api_key = os.getenv(f"{self.name.upper()}_API_KEY")
 
-        self.abi_endpoint = f"{networks[self.name][0]}/api?module=contract&action=getabi" \
-                            "&address={txn_to}" \
-                            f"&apikey={self.node_api_key}"
+        self.abi_endpoint = f"{self.api}/api?module=contract&action=getabi"
 
-        self.txn_url = f"{networks[self.name][0]}/api?module=account&action=txlist" \
-                       "&address={address}&startblock=0&endblock=99999999&sort=desc" \
-                       f"&apikey={self.node_api_key}"
+        self.txn_url = f"{self.api}/api?module=account&action=txlist"
 
-        self.erc20_url = f"{networks[self.name][0]}/api?module=account&action=tokentx" \
-                         "&contractaddress={token_address}" \
-                         "&address={bridge_address}&page=1&offset=100&sort=desc" \
-                         f"&apikey={self.node_api_key}"
-
-        self.message = "{time_stamp}\n" \
-                       "{txn_amount:,} {token_name} swapped on " \
-                       "<a href='{network}/tx/{txn_hash}'>{name}</a>"
+        self.erc20_url = f"{self.api}/api?module=account&action=tokentx"
 
         # Create contract instance
         try:
             to_txn = self.get_last_txns(1, self.bridge_address)[-1]['to']
-            self.contract_instance = self.create_contract(to_txn)
-        except Exception:
-            log_error.warning(f"Could not create a contract instance for {self.name}")
-            self.contract_instance = None
 
-    def create_contract(self, txn_to: str) -> Contract:
+            try:
+                self.contract_instance = self.create_contract(to_txn)
+            except Exception as e:
+                self.contract_instance = None
+                message = f"Contract instance not created for {self.name}, {self.bridge_address}. {e}"
+                log_error.warning(message)
+                print(message)
+
+        except TypeError:
+            self.contract_instance = None
+            message = f"No transaction returned. Contract instance not created for {self.name}, {self.bridge_address}."
+            log_error.warning(message)
+            print(message)
+
+    def create_contract(self, txn_to: str, timeout: float = 5) -> Contract:
         """
         Creates a contract instance ready to be interacted with.
 
         :param txn_to: Transaction 'to' address
+        :param timeout: Max number of secs to wait for request
         :return: web3 Contract instance
         """
         # Contract's ABI
-        abi_endpoint = self.abi_endpoint.format(txn_to=txn_to)
+        payload = {'address': txn_to, 'apikey': self.node_api_key}
 
         project_id = os.getenv("PROJECT_ID")
         infura_url = f"https://mainnet.infura.io/v3/{project_id}"
@@ -80,7 +82,8 @@ class EvmContract:
         # Convert transaction address to check-sum address
         checksum_address = Web3.toChecksumAddress(txn_to)
 
-        abi = json.loads(requests.get(abi_endpoint).text)
+        url = requests.get(self.abi_endpoint, params=payload, timeout=timeout)
+        abi = json.loads(url.text)
 
         # Create contract instance
         contract = w3.eth.contract(address=checksum_address, abi=abi['result'])
@@ -124,13 +127,15 @@ class EvmContract:
         except TypeError:
             return []
 
-    def get_last_txns(self, txn_count: int = 1, bridge_address: str = "", attempts: int = 3) -> List:
+    def get_last_txns(self, txn_count: int = 1, bridge_address: str = "",
+                      max_retries: int = 3, timeout: float = 3) -> List or None:
         """
         Gets the last transactions from a specified contract address.
 
         :param txn_count: Number of transactions to return
         :param bridge_address: Contract address
-        :param attempts: Max number of times to repeat GET request
+        :param max_retries: Max number of times to repeat GET request
+        :param timeout: Max number of secs to wait for request
         :return: A list of transaction dictionaries
         """
         if txn_count < 1:
@@ -139,34 +144,33 @@ class EvmContract:
         if bridge_address == "":
             bridge_address = self.bridge_address
 
-        txn_url = self.txn_url.format(address=bridge_address)
+        self.session.mount("https://", HTTPAdapter(max_retries=max_retries))
 
-        if self.name == 'gnosis':
-            txn_url = f"{self.network_api}?module=account&action=txlist&address={self.bridge_address}"
+        if self.name.lower() == 'gnosis':
+            payload = {"address": bridge_address}
         else:
-            txn_url = self.txn_url.format(address=bridge_address)
+            payload = {"address": bridge_address, "startblock": "0", "endblock": "99999999", "sort": "desc",
+                       "apikey": self.node_api_key}
 
-        counter = 1
-        while True:
-            try:
-                txn_dict = requests.get(txn_url).json()
+        try:
+            response = self.session.get(self.txn_url, params=payload, timeout=timeout)
+        except ConnectionError:
+            log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name}")
+            return None
 
-                # Get a list with number of txns
-                last_transactions = txn_dict['result'][:txn_count]
+        txn_dict = response.json()
 
-            except Exception:
-                log_error.warning(f"Error in f'get_last_txns': Unable to fetch transaction data for {self.name}. "
-                                  f"Attempt: {counter}")
-                counter += 1
-                if counter > attempts:
-                    return []
+        # Get a list with number of txns
+        try:
+            last_transactions = txn_dict['result'][:txn_count]
+        except TypeError:
+            log_error.warning(f"'ResponseError' {response.status_code} - {response.url}")
+            return None
 
-            # If response returned - break
-            else:
-                return last_transactions
+        return last_transactions
 
     def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, bridge_address: str = "",
-                            filter_by: tuple = (), attempts: int = 3) -> List:
+                            filter_by: tuple = (), max_retries: int = 3, timeout: float = 3) -> List or None:
         """
         Gets the latest Token transactions from a specific smart contract address.
 
@@ -174,7 +178,8 @@ class EvmContract:
         :param txn_count: Number of transactions to return
         :param bridge_address: Address of the smart contract interacting with Token
         :param filter_by: Filter transactions by field and value, eg. ('to', '0x000...000')
-        :param attempts: Max number of times to repeat GET request
+        :param max_retries: Max number of times to repeat GET request
+        :param timeout: Max number of secs to wait for request
         :return: A list of transaction dictionaries
         """
         if txn_count < 1:
@@ -185,28 +190,28 @@ class EvmContract:
         if bridge_address == "":
             bridge_address = self.bridge_address
 
-        if self.name == 'gnosis':
-            erc20_url = f"{self.network_api}?module=account&action=tokentx&address={self.bridge_address}"
+        self.session.mount("https://", HTTPAdapter(max_retries=max_retries))
+
+        if self.name.lower() == 'gnosis':
+            payload = {"address": bridge_address}
         else:
-            erc20_url = self.erc20_url.format(token_address=token_address, bridge_address=bridge_address)
+            payload = {"contractaddress": token_address, "address": bridge_address, "page": "1",
+                       "offset": "100", "sort": "desc", "apikey": self.node_api_key}
 
-        counter = 1
-        while True:
-            try:
-                txn_dict = requests.get(erc20_url).json()
-                # Get a list with number of txns
-                last_txns = txn_dict['result'][:txn_count]
+        try:
+            response = self.session.get(self.erc20_url, params=payload, timeout=timeout)
+        except ConnectionError:
+            log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name}")
+            return None
 
-            except Exception:
-                log_error.warning(f"Error in f'get_last_erc20_txns': Unable to fetch transaction data for {self.name}. "
-                                  f"Attempt: {counter}")
-                counter += 1
-                if counter > attempts:
-                    return []
+        txn_dict = response.json()
 
-            # If response returned - break
-            else:
-                break
+        # Get a list with number of txns
+        try:
+            last_txns = txn_dict['result'][:txn_count]
+        except TypeError:
+            log_error.warning(f"'ResponseError' {response.status_code} - {response.url}")
+            return None
 
         try:
             if len(filter_by) != 2:
@@ -220,7 +225,7 @@ class EvmContract:
             return last_txns_cleaned
 
         except KeyError:
-            raise KeyError(f"Error in f'get_last_erc20_txns': Incorrect {filter_by} filter for {self.name}")
+            raise KeyError(f"Error in f'get_last_erc20_txns': Can not filter by {filter_by} for {self.name}")
 
     def alert_checked_txns(self, txns: list, min_txn_amount: float,
                            token_decimals: int, token_name: str) -> None:
@@ -244,9 +249,10 @@ class EvmContract:
 
                 # Construct messages
                 time_stamp = datetime.now().astimezone().strftime(time_format)
-                message = self.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
-                                              token_name=token_name, network=self.network,
-                                              txn_hash=txn['hash'], name=self.name)
+                message = f"{time_stamp}\n" \
+                          f"{txn_amount:,} {token_name} swapped on " \
+                          f"<a href='{self.network}/tx/{txn['hash']}'>{self.name}</a>"
+
                 terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
 
                 # Log all transactions
@@ -276,9 +282,10 @@ class EvmContract:
 
             # Construct messages
             time_stamp = datetime.now().astimezone().strftime(time_format)
-            message = self.message.format(time_stamp=time_stamp, txn_amount=txn_amount,
-                                          token_name=token_name, network=self.network,
-                                          txn_hash=txn['hash'], name=self.name)
+            message = f"{time_stamp}\n" \
+                      f"{txn_amount:,} {token_name} swapped on " \
+                      f"<a href='{self.network}/tx/{txn['hash']}'>{self.name}</a>"
+
             terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
 
             # Log all transactions
