@@ -1,10 +1,10 @@
 # For WEB screening
 var="$(cat input.json)"
-docker run --name="hop_bridge_web" --shm-size="2g" -it "eu.gcr.io/hip-orbit-347017/hop_bridge_web" python3 web.py "$var"
-# docker cp hop_bridge_web:/hop_bridge/logs/error.log .
+docker run --name="hop_web" --shm-size="2g" -it "eu.gcr.io/hip-orbit-347017/hop_web" python3 web.py "$var"
+# docker cp hop_web:/hop_web/logs/error.log .
 
 
 # For ETHERSCAN screening
 var="$(cat contracts.json)"
-docker run --name="hop_bridge_etherscan" -it "eu.gcr.io/hip-orbit-347017/hop_bridge_etherscan" python3 etherscan.py -e "$var"
-# docker cp hop_bridge_etherscan:/hop_bridge/logs/error.log .
+docker run --name="hop_etherscan" -it "eu.gcr.io/hip-orbit-347017/hop_etherscan" python3 etherscan.py -e "$var"
+# docker cp hop_etherscan:/hop_etherscan/logs/error.log .

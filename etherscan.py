@@ -48,7 +48,8 @@ if args.transactions:
 
         for i, item in enumerate(dictionaries):
 
-            if not new_txns[i] or not old_txns[i]:
+            # If empty list returned - no point to compare
+            if len(new_txns[i]) == 0 or len(old_txns[i]) == 0:
                 continue
 
             # If new txns found - check them and send the interesting ones
@@ -82,7 +83,7 @@ if args.erc20tokentxns:
         for i, item in enumerate(dictionaries):
 
             # If empty list returned - no point to compare
-            if not new_txns[i] or not old_txns[i]:
+            if len(new_txns[i]) == 0 or len(old_txns[i]) == 0:
                 continue
 
             # If new txns found - check them and send the interesting ones

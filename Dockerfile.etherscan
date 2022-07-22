@@ -13,7 +13,7 @@ ENV PYTHONFAULTHANDLER=1 \
 RUN pip install "poetry==$POETRY_VERSION"
 
 # Copy only requirements to cache them in docker layer
-WORKDIR ./hop_bridge
+WORKDIR ./hop_etherscan
 COPY poetry.lock pyproject.toml .
 
 # Project init

@@ -1,10 +1,15 @@
 from datetime import datetime
+
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.common.exceptions import (
+    WebDriverException,
+    TimeoutException,
+    StaleElementReferenceException,
+)
 
 from src.hopbridge.common.message import telegram_send_message
 from src.hopbridge.common.logger import (
@@ -15,6 +20,18 @@ from src.hopbridge.variables import (
     request_wait_time,
     time_format,
 )
+
+
+class WaitForNonEmptyText(object):
+    def __init__(self, locator):
+        self.locator = locator
+
+    def __call__(self, driver):
+        try:
+            element_text = ec.find(self.locator).get_attribute("value").strip()
+            return element_text != ""
+        except StaleElementReferenceException:
+            return False
 
 
 def query_hop(
@@ -71,12 +88,8 @@ def query_hop(
         in_field.send_keys(amount)
 
         out_xpath = "//*[@id='root']/div/div[3]/div/div/div[4]/div[2]/div[2]/div/input"
-        while True:
-
-            received = driver.find_element(By.XPATH, out_xpath).get_attribute("value")
-
-            if received != "":
-                break
+        received = WebDriverWait(driver, request_wait_time).until(WaitForNonEmptyText(
+            (By.XPATH, out_xpath))).get_attribute("value")
 
         received = float(received.replace(",", ""))
         arbitrage = received - amount

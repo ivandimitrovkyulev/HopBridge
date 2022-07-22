@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 from typing import List, Dict
 from requests.adapters import HTTPAdapter
+from json.decoder import JSONDecodeError
 
 from web3 import Web3
 from web3.contract import Contract
@@ -48,7 +49,8 @@ class EvmContract:
 
         # Create contract instance
         try:
-            to_txn = self.get_last_txns(1, self.bridge_address)[-1]['to']
+            last_txn = self.get_last_txns(1, self.bridge_address)
+            to_txn = last_txn[-1]['to']
 
             try:
                 self.contract_instance = self.create_contract(to_txn)
@@ -58,13 +60,13 @@ class EvmContract:
                 log_error.warning(message)
                 print(message)
 
-        except TypeError:
+        except IndexError or TypeError:
             self.contract_instance = None
-            message = f"No transaction returned. Contract instance not created for {self.name}, {self.bridge_address}."
+            message = f"No transaction returned. Contract instance not created for {self.name}, {self.bridge_address}"
             log_error.warning(message)
             print(message)
 
-    def create_contract(self, txn_to: str, timeout: float = 5) -> Contract:
+    def create_contract(self, txn_to: str, timeout: float = 5) -> Contract or None:
         """
         Creates a contract instance ready to be interacted with.
 
@@ -82,7 +84,12 @@ class EvmContract:
         # Convert transaction address to check-sum address
         checksum_address = Web3.toChecksumAddress(txn_to)
 
-        url = requests.get(self.abi_endpoint, params=payload, timeout=timeout)
+        try:
+            url = requests.get(self.abi_endpoint, params=payload, timeout=timeout)
+        except ConnectionError:
+            log_error.warning(f"'ConnectionError': Unable to fetch data for {self.abi_endpoint}")
+            return None
+
         abi = json.loads(url.text)
 
         # Create contract instance
@@ -138,7 +145,7 @@ class EvmContract:
         :param timeout: Max number of secs to wait for request
         :return: A list of transaction dictionaries
         """
-        if txn_count < 1:
+        if int(txn_count) < 1:
             txn_count = 1
 
         if bridge_address == "":
@@ -156,16 +163,20 @@ class EvmContract:
             response = self.session.get(self.txn_url, params=payload, timeout=timeout)
         except ConnectionError:
             log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name}")
-            return None
+            return []
 
-        txn_dict = response.json()
+        try:
+            txn_dict = response.json()
+        except JSONDecodeError:
+            log_error.warning(f"'JSONError' {response.status_code} - {response.url}")
+            return []
 
         # Get a list with number of txns
         try:
             last_transactions = txn_dict['result'][:txn_count]
         except TypeError:
             log_error.warning(f"'ResponseError' {response.status_code} - {response.url}")
-            return None
+            return []
 
         return last_transactions
 
@@ -182,7 +193,7 @@ class EvmContract:
         :param timeout: Max number of secs to wait for request
         :return: A list of transaction dictionaries
         """
-        if txn_count < 1:
+        if int(txn_count) < 1:
             txn_count = 1
 
         token_address = token_address.lower()
@@ -202,16 +213,20 @@ class EvmContract:
             response = self.session.get(self.erc20_url, params=payload, timeout=timeout)
         except ConnectionError:
             log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name}")
-            return None
+            return []
 
-        txn_dict = response.json()
+        try:
+            txn_dict = response.json()
+        except JSONDecodeError:
+            log_error.warning(f"'JSONError' {response.status_code} - {response.url}")
+            return []
 
         # Get a list with number of txns
         try:
             last_txns = txn_dict['result'][:txn_count]
         except TypeError:
             log_error.warning(f"'ResponseError' {response.status_code} - {response.url}")
-            return None
+            return []
 
         try:
             if len(filter_by) != 2:
