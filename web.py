@@ -37,7 +37,7 @@ msg = ""
 for pair in pairs:
     data = info[pair[0]]
     msg += f"Arb {data['min_arb']} {pair[0]}, " \
-           f"range {[i for i in range(data['start'], data['end'], data['step'])]}, " \
+           f"range {[i for i in range(*data['range'])]}, " \
            f"{in_network} --> {pair[1]}\n"
 print(f"{timestamp}\nStarted screening https://app.hop.exchange with the following networks:\n{msg}")
 

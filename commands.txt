@@ -6,5 +6,5 @@ docker run --name="hop_bridge_web" --shm-size="2g" -it "eu.gcr.io/hip-orbit-3470
 
 # For ETHERSCAN screening
 var="$(cat contracts.json)"
-docker run --name="hop_bridge_etherscan" -it "eu.gcr.io/hip-orbit-347017/hop_bridge_web" python3 etherscan.py -e "$var"
+docker run --name="hop_bridge_etherscan" -it "eu.gcr.io/hip-orbit-347017/hop_bridge_etherscan" python3 etherscan.py -e "$var"
 # docker cp hop_bridge_etherscan:/hop_bridge/logs/error.log .
