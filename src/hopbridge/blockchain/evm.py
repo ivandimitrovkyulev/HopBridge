@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 from typing import List, Dict
 from requests.adapters import HTTPAdapter
+from requests.exceptions import ConnectionError
 from json.decoder import JSONDecodeError
 
 from web3 import Web3
