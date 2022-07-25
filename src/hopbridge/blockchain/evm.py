@@ -2,8 +2,12 @@ import os
 import json
 import requests
 
+from dotenv import load_dotenv
 from datetime import datetime
-from typing import List, Dict
+from typing import (
+    List,
+    Dict,
+)
 from requests.adapters import HTTPAdapter
 from requests.exceptions import ConnectionError
 from json.decoder import JSONDecodeError
@@ -50,40 +54,34 @@ class EvmContract:
 
         # Create contract instance
         try:
-            last_txn = self.get_last_txns(1, self.bridge_address)
-            to_txn = last_txn[-1]['to']
-
-            try:
-                self.contract_instance = self.create_contract(to_txn)
-            except Exception as e:
-                self.contract_instance = None
-                message = f"Contract instance not created for {self.name}, {self.bridge_address}. {e}"
-                log_error.warning(message)
-                print(message)
-
-        except IndexError or TypeError:
+            abi = self.get_contract_abi(self.bridge_address)
+            self.contract_instance = self.create_contract(self.bridge_address, abi)
+        except Exception as e:
             self.contract_instance = None
-            message = f"No transaction returned. Contract instance not created for {self.name}, {self.bridge_address}"
+            message = f"Contract instance not created for {self.name}, {self.bridge_address}. {e}"
             log_error.warning(message)
             print(message)
 
-    def create_contract(self, txn_to: str, timeout: float = 5) -> Contract or None:
-        """
-        Creates a contract instance ready to be interacted with.
+    @staticmethod
+    def run_contract_function(contract_instance: Contract, function_name: str, args_list: list):
 
-        :param txn_to: Transaction 'to' address
+        function_name = str(function_name)
+
+        contract_func = contract_instance.functions[function_name]
+        result = contract_func(*args_list).call()
+
+        return result
+
+    def get_contract_abi(self, address: str, timeout: float = 3) -> str or None:
+        """
+        Queries contract's ABI using an API.
+
+        :param address: Contract's address
         :param timeout: Max number of secs to wait for request
-        :return: web3 Contract instance
+        :return: Contract's ABI
         """
         # Contract's ABI
-        payload = {'address': txn_to, 'apikey': self.node_api_key}
-
-        project_id = os.getenv("PROJECT_ID")
-        infura_url = f"https://mainnet.infura.io/v3/{project_id}"
-        w3 = Web3(Web3.HTTPProvider(infura_url))
-
-        # Convert transaction address to check-sum address
-        checksum_address = Web3.toChecksumAddress(txn_to)
+        payload = {'address': address, 'apikey': self.node_api_key}
 
         try:
             url = requests.get(self.abi_endpoint, params=payload, timeout=timeout)
@@ -91,10 +89,30 @@ class EvmContract:
             log_error.warning(f"'ConnectionError': Unable to fetch data for {self.abi_endpoint}")
             return None
 
+        # Convert Contract's ABI text to JSON file
         abi = json.loads(url.text)
 
+        return abi['result']
+
+    @staticmethod
+    def create_contract(address: str, abi: str) -> Contract:
+        """
+        Creates a contract instance.
+        Once you instantiated, you can read data and execute transactions.
+
+        :param address: Contract's address
+        :param abi: Contract's ABI
+        :return: web3 Contract instance
+        """
+        load_dotenv()
+        infura_url = f"https://mainnet.infura.io/v3/{os.getenv('PROJECT_ID')}"
+        w3 = Web3(Web3.HTTPProvider(infura_url))
+
+        # Convert transaction address to check-sum address
+        checksum_address = Web3.toChecksumAddress(address)
+
         # Create contract instance
-        contract = w3.eth.contract(address=checksum_address, abi=abi['result'])
+        contract = w3.eth.contract(address=checksum_address, abi=abi)
 
         return contract
 

@@ -20,7 +20,7 @@ log_format = "%(asctime)s - %(levelname)s - %(message)s"
 request_wait_time = 15
 
 # Max time to wait for page to respond
-max_request_wait_time = 30
+max_request_wait_time = 15
 
 tokens = ("ETH", "USDC", "DAI")
 networks = ("ethereum", "polygon", "gnosis", "optimism", "arbitrum")

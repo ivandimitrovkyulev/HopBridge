@@ -34,9 +34,9 @@ args = [(chrome_driver, info[pair[0]], in_network, pair[1], pair[0], len(tokens)
         for pair in pairs]
 
 msg = ""
-for pair in pairs:
+for i, pair in enumerate(pairs):
     data = info[pair[0]]
-    msg += f"Arb {data['min_arb']} {pair[0]}, " \
+    msg += f"{i+1}. Min arb {data['min_arb']} {pair[0]}, " \
            f"range {[i for i in range(*data['range'])]}, " \
            f"{in_network} --> {pair[1]}\n"
 print(f"{timestamp}\nStarted screening https://app.hop.exchange with the following networks:\n{msg}")
