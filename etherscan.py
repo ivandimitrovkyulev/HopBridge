@@ -7,7 +7,10 @@ from copy import deepcopy
 from pprint import pprint
 from atexit import register
 from datetime import datetime
-from time import sleep
+from time import (
+    sleep,
+    perf_counter,
+)
 
 from src.hopbridge.blockchain.interface import args
 from src.hopbridge.variables import time_format
@@ -75,6 +78,7 @@ if args.erc20tokentxns:
 
     while True:
         # Wait for new transactions to appear
+        start = perf_counter()
         sleep(10)
 
         new_txns = [contract.get_last_erc20_txns(item['token_address'], 100, filter_by=filter_by)
@@ -94,3 +98,8 @@ if args.erc20tokentxns:
 
         # Save latest txns in old_txns
         old_txns = deepcopy(new_txns)
+
+        end = perf_counter()
+
+        timestamp = datetime.now().astimezone().strftime(time_format)
+        print(f"{timestamp} - Loop executed in {end - start} secs.")
