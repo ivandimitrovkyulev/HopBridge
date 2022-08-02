@@ -28,28 +28,34 @@ networks = ("polygon", "gnosis", "optimism", "arbitrum")
 in_network = "ethereum"
 sleep_time = info['settings']['sleep_time']
 
-pairs = list(product(tokens, networks))
+token_netw_pairs = list(product(tokens, networks))
 
 args = [(chrome_driver, info[pair[0]], in_network, pair[1], pair[0], len(tokens))
-        for pair in pairs]
+        for pair in token_netw_pairs]
 
-msg = ""
-for i, pair in enumerate(pairs):
-    data = info[pair[0]]
-    msg += f"{i+1}. Min arb {data['min_arb']} {pair[0]}, " \
-           f"range {[i for i in range(*data['range'])]}, " \
-           f"{in_network} --> {pair[1]}\n"
-print(f"{timestamp}\nStarted screening https://app.hop.exchange with the following networks:\n{msg}")
+network_msgs = []
+for i, pair in enumerate(token_netw_pairs):
+    token, out_network = pair
+    ranges, arb, decimal = info[token].values()
+    network_msgs.append(f"{i+1}. Min_arb: {arb} {token}, range{[i for i in range(*ranges)]}, "
+                        f"{in_network} -> {out_network}\n")
+
+print(f"{timestamp} - Started screening https://app.hop.exchange with the following networks:")
+print("".join(network_msgs))
 
 while True:
     start = perf_counter()
 
+    token = args[0][4]
     for arg in args:
+
+        if token != arg[4]:
+            chrome_driver.get("https://www.google.com")
+            token = arg[4]
+
         query_hop(*arg)
 
     sleep(sleep_time)
 
-    end = perf_counter()
-
     timestamp = datetime.now().astimezone().strftime(time_format)
-    print(f"{timestamp} - Loop executed in {end - start} secs.")
+    print(f"{timestamp} - Loop executed in {perf_counter() - start} secs.")

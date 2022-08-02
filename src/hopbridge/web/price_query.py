@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 
 from selenium.webdriver import Chrome
@@ -42,28 +43,23 @@ def query_hop(
     url = f"https://app.hop.exchange/#/send?token={token_name}&sourceNetwork={src_network}" \
           f"&destNetwork={dest_network}"
 
-    all_arbs = {}
-
     try:
-        # In order to refresh the page
-        if no_of_queries > 1:
-            driver.get("https://www.google.com/")
-
         driver.get(url)
 
     except WebDriverException:
         log_error.warning(f"Error querying {url}")
         return None
 
+    all_arbs = {}
     for amount in range(*data['range']):
 
-        xpath = "//*[@id='root']/div/div[3]/div/div/div[2]/div[2]/div[2]/div/input"
+        in_xpath = "//*[@id='root']/div/div[3]/div/div/div[2]/div[2]/div[2]/div/input"
         try:
-            in_field = WebDriverWait(driver, request_wait_time).until(ec.presence_of_element_located(
-                (By.XPATH, xpath)))
+            in_field = WebDriverWait(driver, request_wait_time).until(ec.element_to_be_clickable(
+                (By.XPATH, in_xpath)))
 
         except TimeoutException:
-            log_error.warning(f"Element {xpath} not located.")
+            log_error.warning(f"Element {in_xpath} not located.")
             return None
 
         # Clear the entire field
@@ -74,19 +70,20 @@ def query_hop(
         # Fill in swap amount
         in_field.send_keys(amount)
 
+        timeout = time.time() + 30
         out_xpath = "//*[@id='root']/div/div[3]/div/div/div[4]/div[2]/div[2]/div/input"
         while True:
             out_field = driver.find_element(By.XPATH, out_xpath)
             received = out_field.get_attribute("value")
 
-            if received != "":
+            if received != "" or time.time() > timeout:
                 break
 
         received = float(received.replace(",", ""))
         arbitrage = received - amount
 
         decimals = int(data['decimals'])
-        arbitrage = round(arbitrage, int(decimals / 3))
+        arbitrage = round(arbitrage, int(decimals // 3))
 
         timestamp = datetime.now().astimezone().strftime(time_format)
         message = f"{timestamp}\n" \
@@ -99,8 +96,12 @@ def query_hop(
         # Record all arbs to select the highest later
         all_arbs[arbitrage] = [message, ter_msg]
 
-    highest_arb = max(all_arbs)
-    if data['range'][0] > highest_arb > data['min_arb']:
+    if len(all_arbs) > 0:
+        highest_arb = max(all_arbs)
+    else:
+        return None
+
+    if data['range'][0] > highest_arb >= data['min_arb']:
         message = all_arbs[highest_arb][0]
         ter_msg = all_arbs[highest_arb][1]
         telegram_send_message(message)

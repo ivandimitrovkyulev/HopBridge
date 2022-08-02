@@ -1,4 +1,4 @@
-{
+{   "settings": {"sleep_time": 5},
     "USDC": {
         "range": [30000, 40000, 10000],
         "min_arb": 25,
@@ -13,8 +13,5 @@
         "range": [30000, 40000, 10000],
         "min_arb": 25,
         "decimals": 18
-    },
-    "settings": {
-        "sleep_time": 5
     }
 }
