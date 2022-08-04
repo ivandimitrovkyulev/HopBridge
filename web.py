@@ -48,14 +48,18 @@ while True:
 
     token = args[0][4]
     for arg in args:
-
+        # Refresh only if token changes
         if token != arg[4]:
+            # Refresh this way! and update token
             chrome_driver.get("https://www.google.com")
             token = arg[4]
 
         query_hop(*arg)
 
-    sleep(sleep_time)
+    # Refresh this way! one more time to prepare for new while loop
+    chrome_driver.get("https://www.google.com")
 
+    # Sleep and print loop info
+    sleep(sleep_time)
     timestamp = datetime.now().astimezone().strftime(time_format)
     print(f"{timestamp} - Loop executed in {perf_counter() - start} secs.")
