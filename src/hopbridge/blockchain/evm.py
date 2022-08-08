@@ -189,8 +189,8 @@ class EvmContract:
 
         try:
             response = session.get(self.txn_api, params=payload, timeout=timeout)
-        except ConnectionError:
-            log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name}")
+        except ConnectionError as e:
+            log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name} - {e}")
             return []
 
         try:
@@ -236,7 +236,7 @@ class EvmContract:
 
         try:
             response = session.get(self.erc20_api, params=payload, timeout=timeout)
-        except RetryError or ConnectionError or MaxRetryError as e:
+        except Exception as e:
             log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name} - {e}")
             return []
 
