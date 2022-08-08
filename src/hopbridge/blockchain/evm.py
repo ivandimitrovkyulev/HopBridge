@@ -1,6 +1,16 @@
 import os
 import json
-import requests
+
+from urllib3 import Retry
+from requests import Session
+from requests.adapters import HTTPAdapter
+
+from requests.exceptions import (
+    ConnectionError,
+    RetryError,
+)
+from urllib3.exceptions import MaxRetryError
+from json.decoder import JSONDecodeError
 
 from dotenv import load_dotenv
 from datetime import datetime
@@ -8,9 +18,6 @@ from typing import (
     List,
     Dict,
 )
-from requests.adapters import HTTPAdapter
-from requests.exceptions import ConnectionError
-from json.decoder import JSONDecodeError
 
 from web3 import Web3
 from web3.contract import Contract
@@ -21,6 +28,13 @@ from src.hopbridge.common.logger import (
 )
 from src.hopbridge.variables import time_format
 from src.hopbridge.common.message import telegram_send_message
+
+
+session = Session()
+retry_strategy = Retry(total=2, status_forcelist=[429, 500, 502, 503, 504])
+adapter = HTTPAdapter(max_retries=retry_strategy)
+session.mount("https://", adapter)
+session.mount("http://", adapter)
 
 
 class EvmContract:
@@ -42,21 +56,20 @@ class EvmContract:
         self.bridge_address = bridge_address.lower()
         self.network = networks[self.name][1]
         self.api = networks[self.name][0]
-        self.session = requests.Session()
 
         self.node_api_key = os.getenv(f"{self.name.upper()}_API_KEY")
 
         self.abi_endpoint = f"{self.api}/api?module=contract&action=getabi"
 
-        self.txn_url = f"{self.api}/api?module=account&action=txlist"
+        self.txn_api = f"{self.api}/api?module=account&action=txlist"
 
-        self.erc20_url = f"{self.api}/api?module=account&action=tokentx"
+        self.erc20_api = f"{self.api}/api?module=account&action=tokentx"
 
         # Create contract instance
         try:
             abi = self.get_contract_abi(self.bridge_address)
             self.contract_instance = self.create_contract(self.bridge_address, abi)
-        except Exception as e:
+        except RetryError or ConnectionError or MaxRetryError as e:
             self.contract_instance = None
             message = f"Contract instance not created for {self.name}, {self.bridge_address}. {e}"
             log_error.warning(message)
@@ -84,7 +97,7 @@ class EvmContract:
         payload = {'address': address, 'apikey': self.node_api_key}
 
         try:
-            url = requests.get(self.abi_endpoint, params=payload, timeout=timeout)
+            url = session.get(self.abi_endpoint, params=payload, timeout=timeout)
         except ConnectionError:
             log_error.warning(f"'ConnectionError': Unable to fetch data for {self.abi_endpoint}")
             return None
@@ -153,14 +166,12 @@ class EvmContract:
         except TypeError:
             return []
 
-    def get_last_txns(self, txn_count: int = 1, bridge_address: str = "",
-                      max_retries: int = 3, timeout: float = 3) -> List or None:
+    def get_last_txns(self, txn_count: int = 1, bridge_address: str = "", timeout: float = 3) -> List or None:
         """
         Gets the last transactions from a specified contract address.
 
         :param txn_count: Number of transactions to return
         :param bridge_address: Contract address
-        :param max_retries: Max number of times to repeat GET request
         :param timeout: Max number of secs to wait for request
         :return: A list of transaction dictionaries
         """
@@ -170,8 +181,6 @@ class EvmContract:
         if bridge_address == "":
             bridge_address = self.bridge_address
 
-        self.session.mount("https://", HTTPAdapter(max_retries=max_retries))
-
         if self.name.lower() == 'gnosis':
             payload = {"address": bridge_address}
         else:
@@ -179,7 +188,7 @@ class EvmContract:
                        "apikey": self.node_api_key}
 
         try:
-            response = self.session.get(self.txn_url, params=payload, timeout=timeout)
+            response = session.get(self.txn_api, params=payload, timeout=timeout)
         except ConnectionError:
             log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name}")
             return []
@@ -200,7 +209,7 @@ class EvmContract:
         return last_transactions
 
     def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, bridge_address: str = "",
-                            filter_by: tuple = (), max_retries: int = 3, timeout: float = 3) -> List or None:
+                            filter_by: tuple = (), timeout: float = 3) -> List:
         """
         Gets the latest Token transactions from a specific smart contract address.
 
@@ -208,7 +217,6 @@ class EvmContract:
         :param txn_count: Number of transactions to return
         :param bridge_address: Address of the smart contract interacting with Token
         :param filter_by: Filter transactions by field and value, eg. ('to', '0x000...000')
-        :param max_retries: Max number of times to repeat GET request
         :param timeout: Max number of secs to wait for request
         :return: A list of transaction dictionaries
         """
@@ -220,8 +228,6 @@ class EvmContract:
         if bridge_address == "":
             bridge_address = self.bridge_address
 
-        self.session.mount("https://", HTTPAdapter(max_retries=max_retries))
-
         if self.name.lower() == 'gnosis':
             payload = {"address": bridge_address}
         else:
@@ -229,9 +235,9 @@ class EvmContract:
                        "offset": "100", "sort": "desc", "apikey": self.node_api_key}
 
         try:
-            response = self.session.get(self.erc20_url, params=payload, timeout=timeout)
-        except ConnectionError:
-            log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name}")
+            response = session.get(self.erc20_api, params=payload, timeout=timeout)
+        except RetryError or ConnectionError or MaxRetryError as e:
+            log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name} - {e}")
             return []
 
         try:
@@ -240,26 +246,32 @@ class EvmContract:
             log_error.warning(f"'JSONError' {response.status_code} - {response.url}")
             return []
 
-        # Get a list with number of txns
+        if txn_dict['status'] != "1":
+            log_error.warning(f"'ResponseError' {response.status_code} - {txn_dict} - {response.url}")
+            return []
+
+        # Get a list with specified number of txns
         try:
             last_txns = txn_dict['result'][:txn_count]
         except TypeError:
-            log_error.warning(f"'ResponseError' {response.status_code} - {response.url}")
+            log_error.warning(f"'ResponseError' {response.status_code} - {txn_dict} - {response.url}")
             return []
 
-        try:
-            if len(filter_by) != 2:
-                temp = {t_dict['hash']: t_dict for t_dict in last_txns}
-            else:
+        if len(filter_by) == 2:
+            field = filter_by[0]  # Eg. 'to' or 'from'
+            value = filter_by[1]  # Eg. '0x000...0000'
+            try:
                 temp = {t_dict['hash']: t_dict for t_dict in last_txns
-                        if t_dict[filter_by[0]] == filter_by[1]}
+                        if type(t_dict) is dict and t_dict[field] == value}
 
-            last_txns_cleaned = [txn for txn in temp.values()]
+                last_txns_cleaned = [txn for txn in temp.values()]
+                return last_txns_cleaned
 
-            return last_txns_cleaned
+            except KeyError:
+                raise KeyError(f"Error in f'get_last_erc20_txns': Can not filter by {filter_by} for {self.name}")
 
-        except KeyError:
-            raise KeyError(f"Error in f'get_last_erc20_txns': Can not filter by {filter_by} for {self.name}")
+        else:
+            return last_txns
 
     def alert_checked_txns(self, txns: list, min_txn_amount: float,
                            token_decimals: int, token_name: str) -> None:
