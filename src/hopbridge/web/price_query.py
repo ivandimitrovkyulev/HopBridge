@@ -79,7 +79,13 @@ def query_hop(
             if received != "" or time.time() > timeout:
                 break
 
-        received = float(received.replace(",", ""))
+        try:
+            received = float(received.replace(",", ""))
+        except ValueError as e:
+            log_error.warning(f"ReceivedError - {token_name}, {src_network} -> {dest_network} - {e}")
+            return None
+
+        # Calculate arbitrage
         arbitrage = received - amount
 
         decimals = int(data['decimals'])

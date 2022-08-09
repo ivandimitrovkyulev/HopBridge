@@ -13,9 +13,10 @@ from time import (
 )
 
 from src.hopbridge.blockchain.interface import args
+from src.hopbridge.blockchain.evm import EvmContract
+from src.hopbridge.common.message import telegram_send_message
 from src.hopbridge.variables import time_format
 from src.hopbridge.common.exceptions import exit_handler
-from src.hopbridge.blockchain.evm import EvmContract
 
 
 if len(sys.argv) != 3:
@@ -69,6 +70,7 @@ if args.transactions:
 
 
 if args.erc20tokentxns:
+    telegram_send_message(f"✅ HOP_ETHERSCAN has started.")
     print("Screening for 'Erc20 Token Txns'...")
 
     filter_by = tuple(info['filter_by'])

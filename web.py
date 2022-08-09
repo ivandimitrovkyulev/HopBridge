@@ -9,6 +9,7 @@ from atexit import register
 
 from src.hopbridge.driver.driver import chrome_driver
 from src.hopbridge.common.exceptions import exit_handler_driver
+from src.hopbridge.common.message import telegram_send_message
 from src.hopbridge.web.price_query import query_hop
 from src.hopbridge.variables import time_format
 
@@ -42,6 +43,8 @@ for i, pair in enumerate(token_netw_pairs):
 
 print(f"{timestamp} - Started screening https://app.hop.exchange with the following networks:")
 print("".join(network_msgs))
+
+telegram_send_message(f"✅ HOP_ETHERSCAN has started.")
 
 while True:
     start = perf_counter()
