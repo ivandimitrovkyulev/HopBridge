@@ -5,6 +5,7 @@ from atexit import register
 
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 from src.hopbridge.driver.options import (
     CHROME_LOCATION,
@@ -13,7 +14,7 @@ from src.hopbridge.driver.options import (
 
 
 # Open Chromium web driver
-chrome_driver = Chrome(service=Service(CHROME_LOCATION), options=options)
+chrome_driver = Chrome(ChromeDriverManager().install(), options=options)
 
 # Quit chrome driver after whole script has finished execution
 register(chrome_driver.quit)

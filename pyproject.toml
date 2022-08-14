@@ -11,6 +11,7 @@ requests = "^2.27.1"
 python-dotenv = "^0.20.0"
 web3 = "^5.29.2"
 tqdm = "^4.64.0"
+webdriver-manager = "^3.8.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
