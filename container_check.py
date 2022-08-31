@@ -102,7 +102,7 @@ while True:
     # Alert every 12hours if the script is still running
     if now_time - program_start_time > datetime.timedelta(hours=update_time):
         temp = re.split(r"[ ]?sec[s]?", output)[0]
-        loop_time = int(re.split(r" ", temp)[-1])
+        loop_time = float(re.split(r" ", temp)[-1])
         message = f"✅ {container_name.upper()} is running({update_time}h updates). " \
                   f"Last loop execution: {loop_time:,.1f} secs."
 
