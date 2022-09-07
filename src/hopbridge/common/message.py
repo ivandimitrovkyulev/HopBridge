@@ -10,6 +10,7 @@ from src.hopbridge.variables import (
     TOKEN,
     CHAT_ID_ALERTS,
     CHAT_ID_DEBUG,
+    http_session,
 )
 
 
@@ -20,6 +21,7 @@ def telegram_send_message(
         telegram_chat_id: Optional[str] = "",
         debug: bool = False,
         timeout: float = 10,
+        sleep_time: int = 3,
 ) -> requests.Response or None:
     """
     Sends a Telegram message to a specified chat.
@@ -35,6 +37,7 @@ def telegram_send_message(
     :param telegram_chat_id: Telegram chat ID for alerts, default is 'CHAT_ID_ALERTS' from .env file
     :param debug: If true sends message to Telegram 'CHAT_ID_DEBUG' chat taken from .env file
     :param timeout: Max secs to wait for POST request
+    :param sleep_time: Time to sleep if Telegram bot clutters
     :return: requests.Response
     """
     telegram_token = str(telegram_token)
@@ -61,14 +64,18 @@ def telegram_send_message(
 
     # send the POST request
     try:
+        counter = 1
         # If too many requests, wait for Telegram's rate limit
         while True:
-            post_request = requests.post(url=url, data=payload, timeout=timeout)
+            post_request = http_session.post(url=url, data=payload, timeout=timeout)
 
             if post_request.json()['ok']:
                 return post_request
 
-            sleep(3)
+            log_error.warning(f"'telegram_send_message' - Telegram message not sent, attempt {counter}. "
+                              f"Sleeping for {sleep_time} secs...")
+            counter += 1
+            sleep(sleep_time)
 
     except ConnectionError as e:
         log_error.warning(f"'telegram_send_message' - {e} - '{message_text})' was not sent.")

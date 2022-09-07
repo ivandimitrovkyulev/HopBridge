@@ -1,22 +1,27 @@
-{   "settings": {"sleep_time": 1},
-    "USDC": {
-        "range": [30000, 40000, 10000],
-        "min_arb": 25,
-        "decimals": 6
+{  
+    "settings": {
+        "sleep_time": 1, "special_chat": {"max_swap_amount": 10000, "coins": ["USDC"]}
     },
-    "USDT": {
-        "range": [30000, 40000, 10000],
-        "min_arb": 25,
-        "decimals": 6
-    },
-    "DAI": {
-        "range": [30000, 40000, 10000],
-        "min_arb": 25,
-        "decimals": 18
-    },
-    "ETH": {
-        "range": [50, 60, 10],
-        "min_arb": 0.015,
-        "decimals": 18
+    "coins": {
+        "USDC": {
+            "range": [10000, 40000, 10000],
+            "min_arb": 25,
+            "decimals": 6
+        },
+        "USDT": {
+            "range": [30000, 40000, 10000],
+            "min_arb": 25,
+            "decimals": 6
+        },
+        "DAI": {
+            "range": [30000, 40000, 10000],
+            "min_arb": 25,
+            "decimals": 18
+        },
+        "ETH": {
+            "range": [50, 60, 10],
+            "min_arb": 0.015,
+            "decimals": 18
+        }
     }
 }

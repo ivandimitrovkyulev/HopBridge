@@ -19,6 +19,7 @@ from src.hopbridge.common.logger import (
 from src.hopbridge.variables import (
     request_wait_time,
     time_format,
+    CHAT_ID_SPECIAL,
 )
 
 
@@ -28,7 +29,7 @@ def query_hop(
         src_network: str = "ethereum",
         dest_network: str = "gnosis",
         token_name: str = "USDC",
-        no_of_queries: int = 1,
+        special_chat: dict = {},
 ) -> None:
     """
     Queries Hop Bridge and checks for arbitrage opportunity.
@@ -38,7 +39,7 @@ def query_hop(
     :param src_network: Blockchain to sell from
     :param dest_network: Blockchain to receive from
     :param token_name: Token code, eg. USDC
-    :param no_of_queries: Number of queries
+    :param special_chat: Send specific info, if empty ignore
     """
     url = f"https://app.hop.exchange/#/send?token={token_name}&sourceNetwork={src_network}" \
           f"&destNetwork={dest_network}"
@@ -100,17 +101,23 @@ def query_hop(
                   f"\t-->Arbitrage: {arbitrage:,} {token_name}\n"
 
         # Record all arbs to select the highest later
-        all_arbs[arbitrage] = [message, ter_msg]
+        all_arbs[arbitrage] = [message, ter_msg, amount]
 
     if len(all_arbs) > 0:
         highest_arb = max(all_arbs)
     else:
         return None
 
-    if data['range'][0] > highest_arb >= data['min_arb']:
+    if highest_arb >= data['min_arb']:
         message = all_arbs[highest_arb][0]
         ter_msg = all_arbs[highest_arb][1]
+        amount_in = all_arbs[highest_arb][2]
         telegram_send_message(message)
+
+        # If special chat required, send telegram msg to it
+        if special_chat:
+            if float(special_chat['max_swap_amount']) >= float(amount_in) and token_name.upper() in special_chat['coins']:
+                telegram_send_message(message, telegram_chat_id=CHAT_ID_SPECIAL)
 
         log_arbitrage.info(ter_msg)
         timestamp = datetime.now().astimezone().strftime(time_format)
