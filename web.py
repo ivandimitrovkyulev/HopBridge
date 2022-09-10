@@ -45,7 +45,7 @@ for i, pair in enumerate(token_netw_pairs):
 print(f"{timestamp} - Started screening https://app.hop.exchange with the following networks:")
 print("".join(network_msgs))
 
-telegram_send_message(f"✅ HOP_ETHERSCAN has started.")
+telegram_send_message(f"✅ HOP_WEB has started.")
 
 while True:
     start = perf_counter()

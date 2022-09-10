@@ -10,7 +10,6 @@ from src.hopbridge.variables import (
     TOKEN,
     CHAT_ID_ALERTS,
     CHAT_ID_DEBUG,
-    http_session,
 )
 
 
@@ -67,7 +66,7 @@ def telegram_send_message(
         counter = 1
         # If too many requests, wait for Telegram's rate limit
         while True:
-            post_request = http_session.post(url=url, data=payload, timeout=timeout)
+            post_request = requests.post(url=url, data=payload, timeout=timeout)
 
             if post_request.json()['ok']:
                 return post_request
