@@ -31,12 +31,12 @@ info = json.loads(sys.argv[-1])
 timestamp = datetime.now().astimezone().strftime(time_format)
 print(f"{timestamp} - Started screening:\n")
 
-dictionaries = [dictionary for dictionary in info.values() if type(dictionary) is dict]
-pprint(dictionaries)
+bridges = [bridge for bridge in info['bridges'].values()]
+pprint(bridges)
 
 # Create a contract instance only once and then query multiple times
 print("Initialising contracts...")
-evm_contracts = [EvmContract(item['network'], item['bridge_address']) for item in tqdm(dictionaries)]
+evm_contracts = [EvmContract(item['network'], item['bridge_address']) for item in tqdm(bridges)]
 
 
 if args.transactions:
@@ -50,7 +50,7 @@ if args.transactions:
 
         new_txns = [contract.get_last_txns(100) for contract in evm_contracts]
 
-        for i, item in enumerate(dictionaries):
+        for i, item in enumerate(bridges):
 
             # If empty list returned - no point to compare
             if len(new_txns[i]) == 0 or len(old_txns[i]) == 0:
@@ -73,20 +73,21 @@ if args.erc20tokentxns:
     telegram_send_message(f"✅ HOP_ETHERSCAN has started.")
     print("Screening for 'Erc20 Token Txns'...")
 
-    filter_by = tuple(info['filter_by'])
+    filter_by = tuple(info['settings']['filter_by'])
+    sleep_time = info['settings']['sleep_time']
 
     old_txns = [contract.get_last_erc20_txns(item['token_address'], 100, filter_by=filter_by)
-                for contract, item in zip(evm_contracts, dictionaries)]
+                for contract, item in zip(evm_contracts, bridges)]
 
     while True:
         # Wait for new transactions to appear
         start = perf_counter()
-        sleep(10)
+        sleep(sleep_time)
 
         new_txns = [contract.get_last_erc20_txns(item['token_address'], 100, filter_by=filter_by)
-                    for contract, item in zip(evm_contracts, dictionaries)]
+                    for contract, item in zip(evm_contracts, bridges)]
 
-        for i, item in enumerate(dictionaries):
+        for i, item in enumerate(bridges):
 
             # If empty list returned - no point to compare
             if len(new_txns[i]) == 0 or len(old_txns[i]) == 0:
@@ -102,6 +103,5 @@ if args.erc20tokentxns:
         old_txns = deepcopy(new_txns)
 
         end = perf_counter()
-
         timestamp = datetime.now().astimezone().strftime(time_format)
         print(f"{timestamp} - Loop executed in {end - start} secs.")
