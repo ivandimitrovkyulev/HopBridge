@@ -5,11 +5,7 @@ from urllib3 import Retry
 from requests import Session
 from requests.adapters import HTTPAdapter
 
-from requests.exceptions import (
-    ConnectionError,
-    RetryError,
-)
-from urllib3.exceptions import MaxRetryError
+from requests.exceptions import ConnectionError
 from json.decoder import JSONDecodeError
 
 from dotenv import load_dotenv
@@ -47,7 +43,7 @@ class EvmContract:
             'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io'],
             'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io'],
             'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com'],
-            'gnosis': ['https://blockscout.com/xdai/mainnet/api', 'https://blockscout.com/xdai/mainnet'],
+            'gnosis': ['https://api.gnosisscan.io', 'https://gnosisscan.io'],
         }
         if name.lower() not in networks:
             raise ValueError(f"No such network. Choose from: {networks}")
@@ -69,7 +65,7 @@ class EvmContract:
         try:
             abi = self.get_contract_abi(self.bridge_address)
             self.contract_instance = self.create_contract(self.bridge_address, abi)
-        except RetryError or ConnectionError or MaxRetryError as e:
+        except Exception as e:
             self.contract_instance = None
             message = f"Contract instance not created for {self.name}, {self.bridge_address}. {e}"
             log_error.warning(message)
@@ -111,7 +107,7 @@ class EvmContract:
     def create_contract(address: str, abi: str) -> Contract:
         """
         Creates a contract instance.
-        Once you instantiated, you can read data and execute transactions.
+        Once instantiated, you can read data and execute transactions.
 
         :param address: Contract's address
         :param abi: Contract's ABI
