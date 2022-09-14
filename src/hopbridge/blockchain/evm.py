@@ -1,11 +1,13 @@
 import os
 import json
+import asyncio
 
 from urllib3 import Retry
 from requests import Session
 from requests.adapters import HTTPAdapter
 
 from requests.exceptions import ConnectionError
+from aiohttp import ClientSession
 from json.decoder import JSONDecodeError
 
 from dotenv import load_dotenv
@@ -69,7 +71,6 @@ class EvmContract:
             self.contract_instance = None
             message = f"Contract instance not created for {self.name}, {self.bridge_address}. {e}"
             log_error.warning(message)
-            print(message)
 
     @staticmethod
     def run_contract_function(contract_instance: Contract, function_name: str, args_list: list):
@@ -177,11 +178,8 @@ class EvmContract:
         if bridge_address == "":
             bridge_address = self.bridge_address
 
-        if self.name.lower() == 'gnosis':
-            payload = {"address": bridge_address}
-        else:
-            payload = {"address": bridge_address, "startblock": "0", "endblock": "99999999", "sort": "desc",
-                       "apikey": self.node_api_key}
+        payload = {"address": bridge_address, "startblock": "0", "endblock": "99999999", "sort": "desc",
+                   "apikey": self.node_api_key}
 
         try:
             response = session.get(self.txn_api, params=payload, timeout=timeout)
@@ -204,15 +202,15 @@ class EvmContract:
 
         return last_transactions
 
-    def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, bridge_address: str = "",
-                            filter_by: tuple = (), timeout: float = 3) -> List:
+    async def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, filter_by: tuple = (),
+                                  bridge_address: str = "", timeout: float = 3) -> List:
         """
         Gets the latest Token transactions from a specific smart contract address.
 
         :param token_address: Address of Token contract of interest
         :param txn_count: Number of transactions to return
-        :param bridge_address: Address of the smart contract interacting with Token
         :param filter_by: Filter transactions by field and value, eg. ('to', '0x000...000')
+        :param bridge_address: Address of the smart contract interacting with Token
         :param timeout: Max number of secs to wait for request
         :return: A list of transaction dictionaries
         """
@@ -224,33 +222,32 @@ class EvmContract:
         if bridge_address == "":
             bridge_address = self.bridge_address
 
-        if self.name.lower() == 'gnosis':
-            payload = {"address": bridge_address}
-        else:
-            payload = {"contractaddress": token_address, "address": bridge_address, "page": "1",
-                       "offset": "100", "sort": "desc", "apikey": self.node_api_key}
+        payload = {"contractaddress": token_address, "address": bridge_address, "page": "1",
+                   "offset": "100", "sort": "desc", "apikey": self.node_api_key}
 
-        try:
-            response = session.get(self.erc20_api, params=payload, timeout=timeout)
-        except Exception as e:
-            log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name} - {e}")
-            return []
+        async with ClientSession(timeout=timeout) as async_session:
+            try:
+                async with async_session.get(self.erc20_api, ssl=False, params=payload, timeout=timeout) as response:
 
-        try:
-            txn_dict = response.json()
-        except JSONDecodeError:
-            log_error.warning(f"'JSONError' {response.status_code} - {response.url}")
-            return []
+                    try:
+                        txn_dict = await response.json()
+                    except JSONDecodeError:
+                        log_error.warning(f"'JSONError' - {self.name} - {response.status} - {response.url}")
+                        return []
+
+            except Exception as e:
+                log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name} - {e}")
+                return []
 
         if txn_dict['status'] != "1":
-            log_error.warning(f"'ResponseError' {response.status_code} - {txn_dict} - {response.url}")
+            log_error.warning(f"'ResponseError' {response.status} - {txn_dict} - {response.url}")
             return []
 
         # Get a list with specified number of txns
         try:
             last_txns = txn_dict['result'][:txn_count]
         except TypeError:
-            log_error.warning(f"'ResponseError' {response.status_code} - {txn_dict} - {response.url}")
+            log_error.warning(f"'ResponseError' {response.status} - {txn_dict} - {response.url}")
             return []
 
         if len(filter_by) == 2:
