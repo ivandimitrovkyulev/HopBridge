@@ -1,6 +1,5 @@
 import os
 import json
-import asyncio
 
 from urllib3 import Retry
 from requests import Session
@@ -42,18 +41,19 @@ class EvmContract:
     def __init__(self, name: str, bridge_address: str):
 
         networks = {
-            'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io'],
-            'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io'],
-            'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com'],
-            'gnosis': ['https://api.gnosisscan.io', 'https://gnosisscan.io'],
+            'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io', '🟦'],
+            'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io', '🟥'],
+            'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com', '🟪'],
+            'gnosis': ['https://api.gnosisscan.io', 'https://gnosisscan.io', '🟫'],
         }
         if name.lower() not in networks:
             raise ValueError(f"No such network. Choose from: {networks}")
 
         self.name = name.lower()
         self.bridge_address = bridge_address.lower()
-        self.network = networks[self.name][1]
         self.api = networks[self.name][0]
+        self.network = networks[self.name][1]
+        self.color = networks[self.name][2]
 
         self.node_api_key = os.getenv(f"{self.name.upper()}_API_KEY")
 
@@ -321,11 +321,11 @@ class EvmContract:
 
             # Construct messages
             time_stamp = datetime.now().astimezone().strftime(time_format)
-            message = f"{time_stamp}\n" \
-                      f"{txn_amount:,} {token_name} swapped on " \
-                      f"<a href='{self.network}/tx/{txn['hash']}'>{self.name}</a>"
+            message = f"{time_stamp} - hop_etherscan_async\n" \
+                      f"-> {txn_amount:,} {token_name} swapped on " \
+                      f"<a href='{self.network}/tx/{txn['hash']}'>{self.name.upper()} {self.color}</a>"
 
-            terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
+            terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name.upper()}"
 
             # Log all transactions
             log_txns.info(terminal_msg)
