@@ -102,7 +102,7 @@ if args.erc20tokentxns:
         for i, item in enumerate(bridges):
 
             # If empty list returned - no point to compare
-            if len(new_txns[i]) == 0 or len(old_txns[i]) == 0:
+            if len(new_txns[i]) == 0:
                 continue
 
             # If new txns found - check them and send the interesting ones
@@ -111,8 +111,8 @@ if args.erc20tokentxns:
             if len(found_txns) > 0:
                 evm_contracts[i].alert_erc20_txns(txns=found_txns, min_txn_amount=item['min_amount'])
 
-        # Save latest txns in old_txns
-        old_txns = deepcopy(new_txns)
+            # Save latest txns in old_txns
+            old_txns[i] = deepcopy(new_txns[i])
 
         timestamp = datetime.now().astimezone().strftime(time_format)
         print(f"{timestamp} - Loop {loop_counter} executed in {(perf_counter() - start):,.2f} secs.")

@@ -65,7 +65,7 @@ class EvmContract:
 
         # Create contract instance
         try:
-            abi = self.get_contract_abi(self.bridge_address)
+            abi = self.get_contract_abi(self.bridge_address, self.name, self.abi_endpoint)
             self.contract_instance = self.create_contract(self.bridge_address, abi)
         except Exception as e:
             self.contract_instance = None
@@ -74,6 +74,14 @@ class EvmContract:
 
     @staticmethod
     def run_contract_function(contract_instance: Contract, function_name: str, args_list: list):
+        """
+        Runs an EVM contract function by its name.
+
+        :param contract_instance: EVM Contract
+        :param function_name: Name of function to get executed
+        :param args_list: List of arguments for function to take
+        :return:
+        """
 
         function_name = str(function_name)
 
@@ -82,21 +90,26 @@ class EvmContract:
 
         return result
 
-    def get_contract_abi(self, address: str, timeout: float = 3) -> str or None:
+    @staticmethod
+    def get_contract_abi(address: str, network: str, abi_endpoint: str, timeout: float = 3) -> str or None:
         """
         Queries contract's ABI using an API.
 
         :param address: Contract's address
+        :param network: Network name, eg. Optimism
+        :param abi_endpoint: Node provider api endpoint
         :param timeout: Max number of secs to wait for request
         :return: Contract's ABI
         """
+        node_api_key = os.getenv(f"{network.upper()}_API_KEY")
+
         # Contract's ABI
-        payload = {'address': address, 'apikey': self.node_api_key}
+        payload = {'address': address, 'apikey': node_api_key}
 
         try:
-            url = session.get(self.abi_endpoint, params=payload, timeout=timeout)
+            url = session.get(abi_endpoint, params=payload, timeout=timeout)
         except ConnectionError:
-            log_error.warning(f"'ConnectionError': Unable to fetch data for {self.abi_endpoint}")
+            log_error.warning(f"'ConnectionError': Unable to fetch data for {abi_endpoint}")
             return None
 
         # Convert Contract's ABI text to JSON file
@@ -129,7 +142,7 @@ class EvmContract:
     @staticmethod
     def run_contract(contract: Contract, txn_input: str) -> dict:
         """
-        Runs an EVM contract given a transaction input.
+        Runs an EVM contract with a given transaction input.
 
         :param contract: web3 Contract instance
         :param txn_input: Transaction input field
