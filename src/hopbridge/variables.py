@@ -15,7 +15,6 @@ CHAT_ID_ALERTS = os.getenv("CHAT_ID_ALERTS")
 CHAT_ID_SPECIAL = os.getenv("CHAT_ID_SPECIAL")
 CHAT_ID_DEBUG = os.getenv("CHAT_ID_DEBUG")
 
-
 # Set up and configure requests session
 http_session = Session()
 retry_strategy = Retry(total=2, status_forcelist=[429, 500, 502, 503, 504])
@@ -32,6 +31,20 @@ request_wait_time = 15
 
 # Max time to wait for page to respond
 max_request_wait_time = 15
+
+web3_endpoints = {
+    'ethereum': os.getenv("WEB3_INFURA_ETHEREUM"),
+    'optimism': os.getenv("WEB3_INFURA_OPTIMISM"),
+    'arbitrum': os.getenv("WEB3_INFURA_ARBITRUM"),
+    'polygon': os.getenv("WEB3_INFURA_POLYGON"),
+}
+
+etherscans = {
+    'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io', '🟦'],
+    'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io', '🟥'],
+    'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com', '🟪'],
+    'gnosis': ['https://api.gnosisscan.io', 'https://gnosisscan.io', '🟫'],
+}
 
 tokens = ("ETH", "USDC", "DAI")
 networks = ("ethereum", "polygon", "gnosis", "optimism", "arbitrum")

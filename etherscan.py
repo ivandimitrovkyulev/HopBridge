@@ -45,7 +45,7 @@ with ThreadPoolExecutor(max_workers=len(bridges)) as pool:
     results = pool.map(lambda p: EvmContract(*p), arguments, timeout=20)
 
 evm_contracts = list(results)
-contract_instances = [contract for contract in evm_contracts if contract.contract_instance]
+contract_instances = [contract for contract in evm_contracts if contract.contract]
 print(f"Initialised {len(contract_instances)}/{len(bridges)} contract instances. Look at log files for more details.")
 
 

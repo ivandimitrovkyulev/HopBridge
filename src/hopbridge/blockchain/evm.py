@@ -1,15 +1,10 @@
 import os
 import json
 
-from urllib3 import Retry
-from requests import Session
-from requests.adapters import HTTPAdapter
-
 from requests.exceptions import ConnectionError
 from aiohttp import ClientSession
 from json.decoder import JSONDecodeError
 
-from dotenv import load_dotenv
 from datetime import datetime
 from typing import (
     List,
@@ -19,41 +14,33 @@ from typing import (
 from web3 import Web3
 from web3.contract import Contract
 
+from src.hopbridge.common.message import telegram_send_message
 from src.hopbridge.common.logger import (
     log_txns,
     log_error,
 )
-from src.hopbridge.variables import time_format
-from src.hopbridge.common.message import telegram_send_message
-
-
-session = Session()
-retry_strategy = Retry(total=2, status_forcelist=[429, 500, 502, 503, 504])
-adapter = HTTPAdapter(max_retries=retry_strategy)
-session.mount("https://", adapter)
-session.mount("http://", adapter)
+from src.hopbridge.variables import (
+    time_format,
+    etherscans,
+    http_session,
+    web3_endpoints,
+)
 
 
 class EvmContract:
     """
     EVM contract and transaction screener class.
     """
-    def __init__(self, name: str, bridge_address: str):
+    def __init__(self, name: str, contract_address: str):
 
-        networks = {
-            'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io', '🟦'],
-            'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io', '🟥'],
-            'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com', '🟪'],
-            'gnosis': ['https://api.gnosisscan.io', 'https://gnosisscan.io', '🟫'],
-        }
-        if name.lower() not in networks:
-            raise ValueError(f"No such network. Choose from: {networks}")
+        if name.lower() not in etherscans:
+            raise ValueError(f"No such network. Choose from: {etherscans}")
 
         self.name = name.lower()
-        self.bridge_address = bridge_address.lower()
-        self.api = networks[self.name][0]
-        self.network = networks[self.name][1]
-        self.color = networks[self.name][2]
+        self.contract_address = contract_address.lower()
+        self.api = etherscans[self.name][0]
+        self.web_page = etherscans[self.name][1]
+        self.color = etherscans[self.name][2]
 
         self.node_api_key = os.getenv(f"{self.name.upper()}_API_KEY")
 
@@ -65,11 +52,11 @@ class EvmContract:
 
         # Create contract instance
         try:
-            abi = self.get_contract_abi(self.bridge_address, self.name, self.abi_endpoint)
-            self.contract_instance = self.create_contract(self.bridge_address, abi)
+            abi = self.get_contract_abi(self.contract_address, self.name, self.abi_endpoint)
+            self.contract = self.create_contract(self.name, self.contract_address, abi)
         except Exception as e:
-            self.contract_instance = None
-            message = f"Contract instance not created for {self.name}, {self.bridge_address}. {e}"
+            self.contract = None
+            message = f"Contract instance not created for {self.name}, {self.contract_address}. {e}"
             log_error.warning(message)
 
     @staticmethod
@@ -79,7 +66,7 @@ class EvmContract:
 
         :param contract_instance: EVM Contract
         :param function_name: Name of function to get executed
-        :param args_list: List of arguments for function to take
+        :param args_list: List of arguments to pass to function
         :return:
         """
 
@@ -107,7 +94,7 @@ class EvmContract:
         payload = {'address': address, 'apikey': node_api_key}
 
         try:
-            url = session.get(abi_endpoint, params=payload, timeout=timeout)
+            url = http_session.get(abi_endpoint, params=payload, timeout=timeout)
         except ConnectionError:
             log_error.warning(f"'ConnectionError': Unable to fetch data for {abi_endpoint}")
             return None
@@ -118,18 +105,21 @@ class EvmContract:
         return abi['result']
 
     @staticmethod
-    def create_contract(address: str, abi: str) -> Contract:
+    def create_contract(network: str, address: str, abi: str, web3_endpoint: str = "") -> Contract:
         """
         Creates a contract instance.
         Once instantiated, you can read data and execute transactions.
 
+        :param network: Name of Blockchain, eg. Ethereum or Optimism
         :param address: Contract's address
         :param abi: Contract's ABI
+        :param web3_endpoint: Node provider network url endpoint
         :return: web3 Contract instance
         """
-        load_dotenv()
-        infura_url = f"https://mainnet.infura.io/v3/{os.getenv('PROJECT_ID')}"
-        w3 = Web3(Web3.HTTPProvider(infura_url))
+        if web3_endpoint == "":
+            web3_endpoint = web3_endpoints[network.lower()]
+
+        w3 = Web3(Web3.HTTPProvider(web3_endpoint))
 
         # Convert transaction address to check-sum address
         checksum_address = Web3.toChecksumAddress(address)
@@ -189,13 +179,13 @@ class EvmContract:
             txn_count = 1
 
         if bridge_address == "":
-            bridge_address = self.bridge_address
+            bridge_address = self.contract_address
 
         payload = {"address": bridge_address, "startblock": "0", "endblock": "99999999", "sort": "desc",
                    "apikey": self.node_api_key}
 
         try:
-            response = session.get(self.txn_api, params=payload, timeout=timeout)
+            response = http_session.get(self.txn_api, params=payload, timeout=timeout)
         except ConnectionError as e:
             log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name} - {e}")
             return []
@@ -233,7 +223,7 @@ class EvmContract:
         token_address = token_address.lower()
 
         if bridge_address == "":
-            bridge_address = self.bridge_address
+            bridge_address = self.contract_address
 
         payload = {"contractaddress": token_address, "address": bridge_address, "page": "1",
                    "offset": "100", "sort": "desc", "apikey": self.node_api_key}
@@ -290,10 +280,10 @@ class EvmContract:
         :param token_name: Name of token
         :return: None
         """
-        if self.contract_instance:
+        if self.contract:
             for txn in txns:
                 # Simulate contract execution and calculate amount
-                contract_output = EvmContract.run_contract(self.contract_instance, txn['input'])
+                contract_output = EvmContract.run_contract(self.contract, txn['input'])
                 txn_amount = float(contract_output['amount']) / (10 ** token_decimals)
 
                 rounding = int(token_decimals) // 6
@@ -303,7 +293,7 @@ class EvmContract:
                 time_stamp = datetime.now().astimezone().strftime(time_format)
                 message = f"{time_stamp}\n" \
                           f"{txn_amount:,} {token_name} swapped on " \
-                          f"<a href='{self.network}/tx/{txn['hash']}'>{self.name}</a>"
+                          f"<a href='{self.web_page}/tx/{txn['hash']}'>{self.name}</a>"
 
                 terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
 
@@ -336,7 +326,7 @@ class EvmContract:
             time_stamp = datetime.now().astimezone().strftime(time_format)
             message = f"{time_stamp} - hop_etherscan_async\n" \
                       f"-> {txn_amount:,} {token_name} swapped on " \
-                      f"<a href='{self.network}/tx/{txn['hash']}'>{self.name.upper()} {self.color}</a>"
+                      f"<a href='{self.web_page}/tx/{txn['hash']}'>{self.name.upper()} {self.color}</a>"
 
             terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name.upper()}"
 

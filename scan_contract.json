@@ -1,0 +1,21 @@
+{
+    "settings": {
+        "sleep_time": 10
+    },
+    "network_data":{
+        "USDC_Optimism": {
+            "address": "0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963",
+            "network": "Optimism",
+            "coin": "USDC",
+            "swap_amount": 30000,
+            "min_arb": -1030
+        },
+        "USDC_Arbitrum": {
+            "address": "0x10541b07d8Ad2647Dc6cD67abd4c03575dade261",
+            "network": "Arbitrum",
+            "coin": "USDC",
+            "swap_amount": 30000,
+            "min_arb": -1030
+        }
+    }
+}
