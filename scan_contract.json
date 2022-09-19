@@ -15,7 +15,7 @@
             "network": "Arbitrum",
             "coin": "USDC",
             "swap_amount": 30000,
-            "min_arb": -30
+            "min_arb": 30
         },
         "USDC_Polygon": {
             "address": "0x5C32143C8B198F392d01f8446b754c181224ac26",
