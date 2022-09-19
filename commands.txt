@@ -17,9 +17,9 @@
 
 
 ## CONTRACT SCANNING
-# var="$(cat scan_contract.json)"
-# docker run --name="scan_contract" -it "eu.gcr.io/hip-orbit-347017/scan_contract" python3 scan_contract.py "$var"
-# docker cp scan_contract:/scan_contract/logs/error.log .
+# var="$(cat hop_contract.json)"
+# docker run --name="hop_contract" -it "eu.gcr.io/hip-orbit-347017/hop_contract" python3 hop_contract.py "$var"
+# docker cp hop_contract:/hop_contract/logs/error.log .
 ## To run docker container checker
-# docker cp scan_contract:/scan_contract/.env . | chmod go-rw .env
-# nohup python3 container_check.py scan_contract &
+# docker cp hop_contract:/hop_contract/.env . | chmod go-rw .env
+# nohup python3 container_check.py hop_contract &

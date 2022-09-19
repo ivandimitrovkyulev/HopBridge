@@ -13,7 +13,7 @@ ENV PYTHONFAULTHANDLER=1 \
 RUN pip install "poetry==$POETRY_VERSION"
 
 # Copy only requirements to cache them in docker layer
-WORKDIR ./scan_contract
+WORKDIR ./hop_contract
 COPY poetry.lock pyproject.toml .
 
 # Project init
@@ -23,6 +23,6 @@ RUN poetry config virtualenvs.create false \
 # Copy all project files
 COPY src ./src
 COPY logs ./logs
-COPY .env scan_contract.py .
+COPY .env hop_contract.py .
 
 CMD ["pwd"]
