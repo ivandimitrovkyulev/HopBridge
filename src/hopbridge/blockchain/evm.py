@@ -23,15 +23,20 @@ from src.hopbridge.variables import (
     time_format,
     etherscans,
     http_session,
-    web3_endpoints,
+    infura_endpoints,
 )
 
 
 class EvmContract:
-    """
-    EVM contract and transaction screener class.
-    """
-    def __init__(self, name: str, contract_address: str):
+
+    def __init__(self, name: str, contract_address: str, web3_endpoint: str = ""):
+        """
+        EVM contract and transaction screener class.
+
+        :param name: Network name
+        :param contract_address: Contract address on given network
+        :param web3_endpoint: Node provider network url endpoint
+        """
 
         if name.lower() not in etherscans:
             raise ValueError(f"No such network. Choose from: {etherscans}")
@@ -53,7 +58,7 @@ class EvmContract:
         # Create contract instance
         try:
             abi = self.get_contract_abi(self.contract_address, self.name, self.abi_endpoint)
-            self.contract = self.create_contract(self.name, self.contract_address, abi)
+            self.contract = self.create_contract(self.name, self.contract_address, abi, web3_endpoint)
         except Exception as e:
             self.contract = None
             message = f"Contract instance not created for {self.name}, {self.contract_address}. {e}"
@@ -117,7 +122,7 @@ class EvmContract:
         :return: web3 Contract instance
         """
         if web3_endpoint == "":
-            web3_endpoint = web3_endpoints[network.lower()]
+            web3_endpoint = infura_endpoints[network.lower()]
 
         w3 = Web3(Web3.HTTPProvider(web3_endpoint))
 

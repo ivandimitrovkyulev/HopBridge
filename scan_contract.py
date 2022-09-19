@@ -11,7 +11,10 @@ from concurrent.futures import ThreadPoolExecutor
 from src.hopbridge.blockchain.evm import EvmContract
 from src.hopbridge.common.exceptions import exit_handler
 from src.hopbridge.evm_scanner.helpers import check_arb
-from src.hopbridge.variables import time_format
+from src.hopbridge.variables import (
+    time_format,
+    ankr_endpoints,
+)
 
 
 if len(sys.argv) != 2:
@@ -26,9 +29,10 @@ info = json.loads(sys.argv[-1])
 sleep_time = info['settings']['sleep_time']
 network_data = info['network_data'].values()
 
-# Create a contract instance only once and then query multiple times
-evm_args = [[item['network'], item['address']] for item in network_data]
+evm_args = [[item['network'], item['address'], ankr_endpoints[item['network'].lower()]]
+            for item in network_data]
 
+# Create a contract instance only once and then query multiple times
 with ThreadPoolExecutor(max_workers=len(evm_args)) as pool:
     results = pool.map(lambda p: EvmContract(*p), evm_args, timeout=10)
 bridge_contracts = list(results)

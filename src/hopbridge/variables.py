@@ -32,11 +32,18 @@ request_wait_time = 15
 # Max time to wait for page to respond
 max_request_wait_time = 15
 
-web3_endpoints = {
+infura_endpoints = {
     'ethereum': os.getenv("WEB3_INFURA_ETHEREUM"),
     'optimism': os.getenv("WEB3_INFURA_OPTIMISM"),
     'arbitrum': os.getenv("WEB3_INFURA_ARBITRUM"),
     'polygon': os.getenv("WEB3_INFURA_POLYGON"),
+}
+
+ankr_endpoints = {
+    'ethereum': 'https://rpc.ankr.com/eth',
+    'optimism': 'https://rpc.ankr.com/optimism',
+    'arbitrum': 'https://rpc.ankr.com/arbitrum',
+    'polygon': 'https://rpc.ankr.com/polygon',
 }
 
 etherscans = {
