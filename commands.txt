@@ -1,6 +1,5 @@
 ## WEB SCRAPE
-# var="$(cat web.json)"
-# docker run --name="hop_web" --shm-size="2g" -it "eu.gcr.io/hip-orbit-347017/hop_web" python3 web.py "$var"
+# docker run --name="hop_web" --shm-size="2g" -it "eu.gcr.io/hip-orbit-347017/hop_web" python3 web.py "$(cat web.json)"
 # docker cp hop_web:/hop_web/logs/error.log .
 ## To run docker container checker
 # docker cp hop_web:/hop_web/.env . | chmod go-rw .env
@@ -8,8 +7,7 @@
 
 
 ## ETHERSCAN
-# var="$(cat etherscan.json)"
-# docker run --name="hop_etherscan" -it "eu.gcr.io/hip-orbit-347017/hop_etherscan" python3 etherscan.py -e "$var"
+# docker run --name="hop_etherscan" -it "eu.gcr.io/hip-orbit-347017/hop_etherscan" python3 etherscan.py -e "$(cat etherscan.json)"
 # docker cp hop_etherscan:/hop_etherscan/logs/error.log .
 ## To run docker container checker
 # docker cp hop_etherscan:/hop_etherscan/.env . | chmod go-rw .env
@@ -17,9 +15,15 @@
 
 
 ## CONTRACT SCANNING
-# var="$(cat hop_contract.json)"
-# docker run --name="hop_contract" -it "eu.gcr.io/hip-orbit-347017/hop_contract" python3 hop_contract.py "$var"
+# docker run --name="hop_contract" -it "eu.gcr.io/hip-orbit-347017/hop_contract" python3 hop_contract.py "$(cat hop_contract.json)"
 # docker cp hop_contract:/hop_contract/logs/error.log .
 ## To run docker container checker
 # docker cp hop_contract:/hop_contract/.env . | chmod go-rw .env
 # nohup python3 container_check.py hop_contract &
+
+
+## RAINBOW SCANNING
+# docker run --name="hop_rainbow" -it "eu.gcr.io/hip-orbit-347017/hop_rainbow" python3 hop_rainbow.py
+## To run docker container checker
+# docker cp hop_contract:/hop_rainbow/.env . | chmod go-rw .env
+# nohup python3 container_check.py hop_rainbow &

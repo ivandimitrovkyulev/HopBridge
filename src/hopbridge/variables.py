@@ -44,6 +44,7 @@ ankr_endpoints = {
 }
 
 etherscans = {
+    'ethereum': ['https://api.etherscan.io', 'https://etherscan.io', '🔲'],
     'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io', '🟦'],
     'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io', '🟥'],
     'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com', '🟪'],

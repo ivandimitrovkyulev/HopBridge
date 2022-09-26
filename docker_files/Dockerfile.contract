@@ -14,15 +14,15 @@ RUN pip install "poetry==$POETRY_VERSION"
 
 # Copy only requirements to cache them in docker layer
 WORKDIR ./hop_contract
-COPY poetry.lock pyproject.toml .
+COPY ../poetry.lock ../pyproject.toml .
 
 # Project init
 RUN poetry config virtualenvs.create false \
     && poetry install --no-root --no-interaction --no-ansi
 
 # Copy all project files
-COPY src ./src
-COPY logs ./logs
-COPY .env hop_contract.py .
+COPY ../src ./src
+COPY ../logs ./logs
+COPY ../.env ../hop_contract.py .
 
 CMD ["pwd"]

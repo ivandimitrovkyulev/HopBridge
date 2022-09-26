@@ -13,16 +13,16 @@ ENV PYTHONFAULTHANDLER=1 \
 RUN pip install "poetry==$POETRY_VERSION"
 
 # Copy only requirements to cache them in docker layer
-WORKDIR ./hop_etherscan
-COPY poetry.lock pyproject.toml .
+WORKDIR ./hop_rainbow
+COPY ../poetry.lock ../pyproject.toml .
 
 # Project init
 RUN poetry config virtualenvs.create false \
     && poetry install --no-root --no-interaction --no-ansi
 
 # Copy all project files
-COPY src ./src
-COPY logs ./logs
-COPY .env etherscan.py .
+COPY ../src ./src
+COPY ../logs ./logs
+COPY ../.env ../hop_rainbow.py .
 
 CMD ["pwd"]
