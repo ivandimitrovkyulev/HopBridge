@@ -6,22 +6,30 @@
         "USDC": {
             "range": [10000, 40000, 10000],
             "min_arb": 25,
-            "decimals": 6
+            "decimals": 6,
+            "in_networks": ["ethereum"],
+            "out_networks": ["polygon", "gnosis", "optimism", "arbitrum"]
         },
         "USDT": {
             "range": [30000, 40000, 10000],
             "min_arb": 25,
-            "decimals": 6
+            "decimals": 6,
+            "in_networks": ["ethereum"],
+            "out_networks": ["polygon", "gnosis", "optimism", "arbitrum"]
         },
         "DAI": {
             "range": [30000, 40000, 10000],
             "min_arb": 25,
-            "decimals": 18
+            "decimals": 18,
+            "in_networks": ["ethereum"],
+            "out_networks": ["polygon", "gnosis", "optimism", "arbitrum"]
         },
         "ETH": {
             "range": [50, 60, 10],
             "min_arb": 0.015,
-            "decimals": 18
+            "decimals": 18,
+            "in_networks": ["ethereum"],
+            "out_networks": ["polygon", "optimism", "arbitrum"]
         }
     }
 }

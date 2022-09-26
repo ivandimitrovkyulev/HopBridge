@@ -4,46 +4,39 @@ import json
 
 from time import sleep, perf_counter
 from datetime import datetime
-from itertools import product
 from atexit import register
 
 from src.hopbridge.driver.driver import chrome_driver
+from src.hopbridge.web.helpers import print_start_message
+from src.hopbridge.web.price_query import query_hop
 from src.hopbridge.common.exceptions import exit_handler_driver
 from src.hopbridge.common.message import telegram_send_message
-from src.hopbridge.web.price_query import query_hop
 from src.hopbridge.variables import time_format
 
 
 if len(sys.argv) != 2:
     sys.exit(f"Usage: python3 {os.path.basename(__file__)} contracts.json\n")
 
-info = json.loads(sys.argv[-1])
-
 # Send telegram debug message if program terminates
 program_name = os.path.abspath(os.path.basename(__file__))
 register(exit_handler_driver, chrome_driver, program_name)
 timestamp = datetime.now().astimezone().strftime(time_format)
 
-tokens = tuple(token for token in info['coins'].keys())
-out_networks = ("polygon", "gnosis", "optimism", "arbitrum")
-in_network = "ethereum"
-sleep_time = info['settings']['sleep_time']
-special_chat = info['settings']['special_chat']
+# Extract input info from file
+info = json.loads(sys.argv[-1])
 
-token_netw_pairs = list(product(tokens, out_networks))
+sleep_time, special_chat = info['settings'].values()
 
-args = [(chrome_driver, info['coins'][token], in_network, out_network, token, special_chat)
-        for token, out_network in token_netw_pairs]
+args = []
+for coin in info['coins']:
+    for in_network in info['coins'][coin]['in_networks']:
+        for out_network in info['coins'][coin]['out_networks']:
+            # Append argument for each network configuration
+            args.append((chrome_driver, info['coins'][coin], in_network, out_network, coin, special_chat))
 
-network_msgs = []
-for i, pair in enumerate(token_netw_pairs):
-    token, out_network = pair
-    ranges, arb, decimal = info['coins'][token].values()
-    network_msgs.append(f"{i+1}. Min_arb: {arb} {token}, range{[i for i in range(*ranges)]}, "
-                        f"{in_network} -> {out_network}\n")
 
 print(f"{timestamp} - Started screening https://app.hop.exchange with the following networks:")
-print("".join(network_msgs))
+print_start_message(args)
 
 telegram_send_message(f"✅ HOP_WEB has started.")
 
