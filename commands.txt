@@ -20,10 +20,3 @@
 ## To run docker container checker
 # docker cp hop_contract:/hop_contract/.env . | chmod go-rw .env
 # nohup python3 container_check.py hop_contract &
-
-
-## RAINBOW SCANNING
-# docker run --name="hop_rainbow" -it "eu.gcr.io/hip-orbit-347017/hop_rainbow" python3 hop_rainbow.py
-## To run docker container checker
-# docker cp hop_rainbow:/hop_rainbow/.env . | chmod go-rw .env
-# nohup python3 container_check.py hop_rainbow &

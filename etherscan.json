@@ -1,7 +1,7 @@
 { 
     "settings": {
         "filter_by": ["to", "0x0000000000000000000000000000000000000000"],
-        "sleep_time": 2
+        "sleep_time": 4
     },
     "bridges": {
         "optimism_dai": {
