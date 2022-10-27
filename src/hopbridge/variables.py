@@ -41,6 +41,7 @@ ankr_endpoints = {
     'optimism': 'https://rpc.ankr.com/optimism',
     'arbitrum': 'https://rpc.ankr.com/arbitrum',
     'polygon': 'https://rpc.ankr.com/polygon',
+    'gnosis': 'https://rpc.ankr.com/gnosis',
 }
 
 etherscans = {

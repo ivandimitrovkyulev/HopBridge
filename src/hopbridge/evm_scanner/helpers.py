@@ -13,6 +13,33 @@ from src.hopbridge.variables import (
 )
 
 
+def print_start_message(arguments: list) -> None:
+    """Prints script start message of all network configurations.
+
+    :param arguments: List of argument lists. Output of func parser_args
+    """
+
+    table = []
+    for arg in arguments:
+        from_network = 'ethereum'
+        to_network = arg[0].name
+        bridge_address = arg[0].contract_address.lower()
+        swap_amount = arg[1]
+        token = arg[2]
+        min_amount = arg[3]
+
+        min_amount = f"{min_amount:,} {token}"
+        swap_amount = f"{swap_amount:,} {token}"
+
+        line = [from_network, to_network, swap_amount, min_amount, bridge_address]
+        table.append(line)
+
+    columns = ["From_network", "To_network", "Swap_amount", "Min_amount", "Bridge_address"]
+
+    print(tabulate(table, headers=columns, showindex=True,
+                   tablefmt="fancy_grid", numalign="left", stralign="left", colalign="left"))
+
+
 def calculate_swap(contract: EvmContract, swap_amount: float) -> float:
     """
     Calculates the swap out amount for an initialised Evm Contract.
@@ -52,7 +79,7 @@ def alert_arb(swap_in: float, swap_out: float, coin: str, min_arb: int, network:
 
         timestamp = datetime.now().astimezone().strftime(time_format)
         color_sign = etherscans[network.lower()][2]
-        message = f"{timestamp} - scan_contract\n" \
+        message = f"{timestamp} - hop_contract\n" \
                   f"Swap {swap_in:,} {coin} for {swap_out:,.3f} {coin}; ETH -> {network.upper()}{color_sign}\n" \
                   f"-->Arbitrage: <a href='{url}'>{arbitrage:,.3f} {coin}</a>\n"
 
@@ -71,30 +98,3 @@ def check_arb(contract: EvmContract, swap_in: float, coin: str, min_arb: int):
     swap_out = calculate_swap(contract, swap_in)
 
     alert_arb(swap_in, swap_out, coin, min_arb, network_name)
-
-
-def print_start_message(arguments: list) -> None:
-    """Prints script start message of all network configurations.
-
-    :param arguments: List of argument lists. Output of func parser_args
-    """
-
-    table = []
-    for arg in arguments:
-        from_network = 'ethereum'
-        to_network = arg[0].name
-        bridge_address = arg[0].contract_address.lower()
-        swap_amount = arg[1]
-        token = arg[2]
-        min_amount = arg[3]
-
-        min_amount = f"{min_amount:,} {token}"
-        swap_amount = f"{swap_amount:,} {token}"
-
-        line = [from_network, to_network, swap_amount, min_amount, bridge_address]
-        table.append(line)
-
-    columns = ["From_network", "To_network", "Swap_amount", "Min_amount", "Bridge_address"]
-
-    print(tabulate(table, headers=columns, showindex=True,
-                   tablefmt="fancy_grid", numalign="left", stralign="left", colalign="left"))
