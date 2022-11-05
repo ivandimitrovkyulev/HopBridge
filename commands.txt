@@ -1,5 +1,5 @@
-## WEB SCRAPE
-# docker run --name="hop_web" --shm-size="2g" -it "eu.gcr.io/hip-orbit-347017/hop_web" python3 web.py "$(cat web.json)"
+## WEB
+# docker run --name="hop_web" --shm-size="2g" -it "eu.gcr.io/hip-orbit-347017/hop_web" python3 hop_web.py "$(cat hop_web.json)"
 # docker cp hop_web:/hop_web/logs/error.log .
 ## To run docker container checker
 # docker cp hop_web:/hop_web/.env . | chmod go-rw .env
@@ -7,14 +7,14 @@
 
 
 ## ETHERSCAN
-# docker run --name="hop_etherscan" -it "eu.gcr.io/hip-orbit-347017/hop_etherscan" python3 etherscan.py -e "$(cat etherscan.json)"
+# docker run --name="hop_etherscan" -it "eu.gcr.io/hip-orbit-347017/hop_etherscan" python3 hop_etherscan.py -e "$(cat hop_etherscan.json)"
 # docker cp hop_etherscan:/hop_etherscan/logs/error.log .
 ## To run docker container checker
 # docker cp hop_etherscan:/hop_etherscan/.env . | chmod go-rw .env
 # nohup python3 container_check.py hop_etherscan &
 
 
-## CONTRACT SCANNING
+## CONTRACT
 # docker run --name="hop_contract" -it "eu.gcr.io/hip-orbit-347017/hop_contract" python3 hop_contract.py "$(cat hop_contract.json)"
 # docker cp hop_contract:/hop_contract/logs/error.log .
 ## To run docker container checker

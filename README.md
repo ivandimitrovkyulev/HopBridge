@@ -1,11 +1,14 @@
-# HopBridge v0.2.1
+HopBridge
+================
+### version 0.3.0
 
-Program that screens https://hop.exchange for arbitrage and etherscan networks for contract transactions of specified contract addresses. Alerts via a Telegram message if something of interest is found. Currently supports the following L2 networks: [Optimism](https://optimistic.etherscan.io/), [Arbitrum](https://arbiscan.io/), [Polygon](https://polygonscan.com), [Gnosis](https://blockscout.com/xdai/mainnet/).
+Program that screens https://hop.exchange for arbitrage and etherscan networks for contract transactions of specified
+contract addresses. Alerts via a Telegram message if something of interest is found. Currently supports the following
+L2 networks: [Optimism](https://optimistic.etherscan.io/), [Arbitrum](https://arbiscan.io/),
+[Polygon](https://polygonscan.com), [Gnosis](https://blockscout.com/xdai/mainnet/).
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-<br>
-
-## Installation ##
-<br>
+## Installation
 
 This project uses **Python 3.9** and requires a
 [Chromium WebDriver](https://chromedriver.chromium.org/getting-started/) installed.
@@ -29,31 +32,23 @@ poetry install
 ```
 
 You will need to apply for API access and save the following variables in a **.env** file in .../HopBridge/:
-```
+```dotenv
 CHROME_LOCATION=<your/web/driver/path/location> 
 
 TOKEN=<telegram-token-for-your-bot>
-
 CHAT_ID_ALERTS=<id-of-telegram-chat-for-alerts>
-
 CHAT_ID_DEBUG=<id-of-telegram-chat-for-debugging>
 
 WEB3_INFURA_PROJECT_ID=<project-id-from-node>
-
 PROJECT_ID=<project-id-from-node>
 
 OPTIMISM_API_KEY=<etherscan-optimism-api-key>
-
 ARBITRUM_API_KEY=<etherscan-arbitrum-api-key>
-
 POLYGON_API_KEY=<etherscan-polygon-api-key>
-
 GNOSIS_API_KEY=<etherscan-gnosis-api-key>
 ```
-<br/>
 
 ## Running the script
-<br/>
 
 To screen the hop-bridge website for arbitrage:
 ```
@@ -62,7 +57,7 @@ python3 main.py "$var"
 ```
 
 Where **input.json** are variables for screening:
-```
+```json
 {
     "USDC": {
         "start": 50000,
@@ -83,6 +78,7 @@ Where **input.json** are variables for screening:
     }
 }
 ```
+
 <br>
 
 To screen network etherscan for Erc20 Token Transactions:
@@ -96,7 +92,7 @@ python3 etherscan.py -t "$var"
 ```
 
 Where **contracts.json** are Network and screening variables of the following schema:
-```
+```json
 {
     "optimism_usdt": {
         "token": "USDT",
@@ -123,5 +119,5 @@ For help:
 python3 etherscan.py --help
 ```
 
-<br>
-Contact: ivandkyulev@gmai.com
+<br/>
+Email: <a href="mailto:ivandkyulev@gmail.com">ivandkyulev@gmail.com</a>

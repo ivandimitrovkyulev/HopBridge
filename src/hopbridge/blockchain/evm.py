@@ -5,7 +5,10 @@ from requests.exceptions import ConnectionError
 from aiohttp import ClientSession
 from json.decoder import JSONDecodeError
 
-from datetime import datetime
+from datetime import (
+    datetime,
+    timezone,
+)
 from typing import (
     List,
     Dict,
@@ -171,44 +174,66 @@ class EvmContract:
         except TypeError:
             return []
 
-    def get_last_txns(self, txn_count: int = 1, bridge_address: str = "", timeout: float = 3) -> List or None:
+    async def get_last_txns(self, contract_address: str, txn_count: int = 1,
+                            filter_by: tuple = (), timeout: float = 3) -> List:
         """
         Gets the last transactions from a specified contract address.
 
+        :param contract_address: Contract address on Blockchain
         :param txn_count: Number of transactions to return
-        :param bridge_address: Contract address
+        :param filter_by: Filter transactions by field and value, eg. ('to', '0x000...000')
         :param timeout: Max number of secs to wait for request
         :return: A list of transaction dictionaries
         """
         if int(txn_count) < 1:
             txn_count = 1
 
-        if bridge_address == "":
-            bridge_address = self.contract_address
+        if contract_address == "":
+            contract_address = self.contract_address
 
-        payload = {"address": bridge_address, "startblock": "0", "endblock": "99999999", "sort": "desc",
+        payload = {"address": contract_address, "startblock": "0", "endblock": "99999999", "sort": "desc",
                    "apikey": self.node_api_key}
 
-        try:
-            response = http_session.get(self.txn_api, params=payload, timeout=timeout)
-        except ConnectionError as e:
-            log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name} - {e}")
+        async with ClientSession(timeout=timeout) as async_session:
+            try:
+                async with async_session.get(self.txn_api, ssl=False, params=payload, timeout=timeout) as response:
+
+                    try:
+                        txn_dict = await response.json()
+                    except JSONDecodeError:
+                        log_error.warning(f"'JSONError' - {self.name} - {response.status} - {response.url}")
+                        return []
+
+            except Exception as e:
+                log_error.warning(f"'ConnectionError': Unable to fetch transaction data for {self.name} - {e}")
+                return []
+
+        if txn_dict['status'] != "1":
+            log_error.warning(f"'ResponseError' {response.status} - {txn_dict} - {response.url}")
             return []
 
+        # Get a list with specified number of txns
         try:
-            txn_dict = response.json()
-        except JSONDecodeError:
-            log_error.warning(f"'JSONError' {response.status_code} - {response.url}")
-            return []
-
-        # Get a list with number of txns
-        try:
-            last_transactions = txn_dict['result'][:txn_count]
+            last_txns = txn_dict['result'][:txn_count]
         except TypeError:
-            log_error.warning(f"'ResponseError' {response.status_code} - {response.url}")
+            log_error.warning(f"'ResponseError' {response.status} - {txn_dict} - {response.url}")
             return []
 
-        return last_transactions
+        if len(filter_by) == 2:
+            field = filter_by[0]  # Eg. 'to' or 'from'
+            value = filter_by[1]  # Eg. '0x000...0000'
+            try:
+                temp = {t_dict['hash']: t_dict for t_dict in last_txns
+                        if type(t_dict) is dict and t_dict[field] == value}
+
+                last_txns_cleaned = [txn for txn in temp.values()]
+                return last_txns_cleaned
+
+            except KeyError:
+                raise KeyError(f"Error in f'get_last_txns': Can not filter by {filter_by} for {self.name}")
+
+        else:
+            return last_txns
 
     async def get_last_erc20_txns(self, token_address: str, txn_count: int = 1, filter_by: tuple = (),
                                   bridge_address: str = "", timeout: float = 3) -> List:
@@ -274,42 +299,50 @@ class EvmContract:
         else:
             return last_txns
 
-    def alert_checked_txns(self, txns: list, min_txn_amount: float,
-                           token_decimals: int, token_name: str) -> None:
+    def alert_checked_txns(self, txns: list) -> None:
         """
-        Checks transaction list and alerts if new transaction is important.
+        Alerts each txn from the txn list.
 
         :param txns: List of transactions
-        :param min_txn_amount: Minimum transfer amount to alert for
-        :param token_decimals: Number of decimals for this coin being swapped
-        :param token_name: Name of token
         :return: None
         """
-        if self.contract:
-            for txn in txns:
-                # Simulate contract execution and calculate amount
-                contract_output = EvmContract.run_contract(self.contract, txn['input'])
-                txn_amount = float(contract_output['amount']) / (10 ** token_decimals)
+        for txn in txns:
+            txn_hash = txn['hash']
+            value = float(txn['value'])
+            from_addr = txn['from']
+            to_addr = txn['to']
+            time_at_secs = int(txn['timeStamp'])
+            try:
+                function_name: str = txn['functionName']
+                function_name = function_name.split("(")[0]
+            except (KeyError, TypeError):
+                function_name = 'n/a'
 
-                rounding = int(token_decimals) // 6
-                txn_amount = round(txn_amount, rounding)
+            txn_hash_format = f"{txn_hash[0:6]}...{txn_hash[-4:]}"  # eg. 0xc43c...37ea
+            from_addr_format = f"{from_addr[0:6]}...{from_addr[-4:]}"  # eg. 0xc43c...37ea
+            to_addr_format = f"{to_addr[0:6]}...{to_addr[-4:]}"  # eg. 0xc43c...37ea
 
-                # Construct messages
-                time_stamp = datetime.now().astimezone().strftime(time_format)
-                message = f"{time_stamp}\n" \
-                          f"{txn_amount:,} {token_name} swapped on " \
-                          f"<a href='{self.web_page}/tx/{txn['hash']}'>{self.name}</a>"
+            txn_stamp = datetime.fromtimestamp(time_at_secs, timezone.utc).strftime(time_format)
 
-                terminal_msg = f"{txn['hash']}, {txn_amount:,} {token_name} swapped on {self.name}"
+            try:
+                txn_link = f"{self.web_page}/tx/{txn_hash}"
+            except KeyError:
+                txn_link = f"https://www.google.com/search?&rls=en&q={self.name}+{txn_hash}&ie=UTF-8&oe=UTF-8"
 
-                # Log all transactions
-                log_txns.info(terminal_msg)
+            # Construct messages
+            time_stamp = datetime.now().astimezone().strftime(time_format)
+            message = f"{time_stamp}\n" \
+                      f"<a href='{txn_link}'>{txn_hash_format} on {self.name.title()}</a>\n" \
+                      f"From {from_addr_format} -> To {to_addr_format}\n" \
+                      f"Stamp:  {txn_stamp}\n" \
+                      f"Type: {function_name}\n" \
+                      f"Value: {value:,.3f}"
 
-                if txn_amount >= min_txn_amount:
-                    # Send formatted Telegram message
-                    telegram_send_message(message)
+            terminal_msg = f"{txn_hash}, {self.name}"
 
-                    print(f"{time_stamp}\n{terminal_msg}")
+            # Log all transactions
+            log_txns.info(terminal_msg)
+            telegram_send_message(message)
 
     def alert_erc20_txns(self, txns: list, min_txn_amount: float) -> None:
         """
@@ -341,5 +374,3 @@ class EvmContract:
             if txn_amount >= min_txn_amount:
                 # Send formatted Telegram message
                 telegram_send_message(message)
-
-                print(f"{time_stamp} - {terminal_msg}")

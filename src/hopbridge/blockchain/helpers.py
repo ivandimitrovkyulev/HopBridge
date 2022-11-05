@@ -17,7 +17,7 @@ def print_start_message(arguments: List[dict]) -> None:
         network = arg['network']
         token = arg['token']
         min_amount = arg['min_amount']
-        bridge_address = arg['bridge_address'].lower()
+        bridge_address = arg['contract_address'].lower()
         token_address = arg['token_address'].lower()
 
         min_amount = f"{min_amount:,} {token}"
@@ -27,7 +27,7 @@ def print_start_message(arguments: List[dict]) -> None:
         line = [network, token, min_amount, bridge_address, token_address]
         table.append(line)
 
-    columns = ["Network", "Token", "Min_amount", "Bridge_address", "Token_address"]
+    columns = ["Network", "Token", "Min amount", "Contract address", "Token address"]
 
     print(tabulate(table, headers=columns, showindex=True,
                    tablefmt="fancy_grid", numalign="left", stralign="left", colalign="left"))

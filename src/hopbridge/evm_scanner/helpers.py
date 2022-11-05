@@ -29,12 +29,11 @@ def print_start_message(arguments: list) -> None:
         min_amount = arg[3]
 
         min_amount = f"{min_amount:,} {token}"
-        swap_amount = f"{swap_amount:,} {token}"
 
-        line = [from_network, to_network, swap_amount, min_amount, bridge_address]
+        line = [token, from_network, to_network, swap_amount, min_amount, bridge_address]
         table.append(line)
 
-    columns = ["From_network", "To_network", "Swap_amount", "Min_amount", "Bridge_address"]
+    columns = ["Token", "From_network", "To_network", "Swap_amount", "Min_amount", "Bridge_address"]
 
     print(tabulate(table, headers=columns, showindex=True,
                    tablefmt="fancy_grid", numalign="left", stralign="left", colalign="left"))

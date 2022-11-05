@@ -23,7 +23,7 @@ RUN poetry config virtualenvs.create false \
 # Copy all project files
 COPY ../src ./src
 COPY ../logs ./logs
-COPY ../.env ../web.py .
+COPY ../.env ../hop_web.py .
 
 
 # Install Chrome WebDriver
