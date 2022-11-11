@@ -1,6 +1,6 @@
 {
     "settings": {
-        "sleep_time": 6
+        "sleep_time": 8
     },
     "network_data":{
         "USDC_Optimism": {
@@ -67,21 +67,21 @@
             "min_arb": 40
         },
         "ETH_Optimism": {
-            "address": "",
+            "address": "0xaa30D6bba6285d0585722e2440Ff89E23EF68864",
             "network": "Optimism",
             "coin": "ETH",
             "swap_amount": 50,
             "min_arb": 0.023
         },
         "ETH_Arbitrum": {
-            "address": "",
+            "address": "0x652d27c0F72771Ce5C76fd400edD61B406Ac6D97",
             "network": "Arbitrum",
             "coin": "ETH",
             "swap_amount": 50,
             "min_arb": 0.023
         },
         "ETH_Polygon": {
-            "address": "",
+            "address": "0x266e2dc3C4c59E42AA07afeE5B09E964cFFe6778",
             "network": "Polygon",
             "coin": "ETH",
             "swap_amount": 50,
