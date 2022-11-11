@@ -7,85 +7,85 @@
             "address": "0x3c0FFAca566fCcfD9Cc95139FEF6CBA143795963",
             "network": "Optimism",
             "coin": "USDC",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "USDC_Arbitrum": {
             "address": "0x10541b07d8Ad2647Dc6cD67abd4c03575dade261",
             "network": "Arbitrum",
             "coin": "USDC",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "USDC_Polygon": {
             "address": "0x5C32143C8B198F392d01f8446b754c181224ac26",
             "network": "Polygon",
             "coin": "USDC",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "USDT_Optimism": {
             "address": "0xeC4B41Af04cF917b54AEb6Df58c0f8D78895b5Ef",
             "network": "Optimism",
             "coin": "USDT",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "USDT_Arbitrum": {
             "address": "0x18f7402B673Ba6Fb5EA4B95768aABb8aaD7ef18a",
             "network": "Arbitrum",
             "coin": "USDT",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "USDT_Polygon": {
             "address": "0xB2f7d27B21a69a033f85C42d5EB079043BAadC81",
             "network": "Polygon",
             "coin": "USDT",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "DAI_Optimism": {
             "address": "0xF181eD90D6CfaC84B8073FdEA6D34Aa744B41810",
             "network": "Optimism",
             "coin": "DAI",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "DAI_Arbitrum": {
             "address": "0xa5A33aB9063395A90CCbEa2D86a62EcCf27B5742",
             "network": "Arbitrum",
             "coin": "DAI",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "DAI_Polygon": {
             "address": "0x25FB92E505F752F730cAD0Bd4fa17ecE4A384266",
             "network": "Polygon",
             "coin": "DAI",
-            "swap_amount": 30000,
-            "min_arb": 40
+            "swap_amount": [30000],
+            "min_arb": 35
         },
         "ETH_Optimism": {
             "address": "0xaa30D6bba6285d0585722e2440Ff89E23EF68864",
             "network": "Optimism",
             "coin": "ETH",
-            "swap_amount": 50,
-            "min_arb": 0.023
+            "swap_amount": [50],
+            "min_arb": 0.025
         },
         "ETH_Arbitrum": {
             "address": "0x652d27c0F72771Ce5C76fd400edD61B406Ac6D97",
             "network": "Arbitrum",
             "coin": "ETH",
-            "swap_amount": 50,
-            "min_arb": 0.023
+            "swap_amount": [50],
+            "min_arb": 0.025
         },
         "ETH_Polygon": {
             "address": "0x266e2dc3C4c59E42AA07afeE5B09E964cFFe6778",
             "network": "Polygon",
             "coin": "ETH",
-            "swap_amount": 50,
-            "min_arb": 0.023
+            "swap_amount": [50],
+            "min_arb": 0.025
         }
     }
 }

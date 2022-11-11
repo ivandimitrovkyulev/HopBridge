@@ -40,7 +40,7 @@ with ThreadPoolExecutor(max_workers=len(evm_args)) as pool:
     results = pool.map(lambda p: EvmContract(*p), evm_args, timeout=10)
 bridge_contracts = list(results)
 
-arb_args = [[contract, arg['swap_amount'], arg['coin'], arg['min_arb']]
+arb_args = [[contract, tuple(arg['swap_amount']), arg['coin'], arg['min_arb']]
             for contract, arg in zip(bridge_contracts, network_data)]
 
 print(f"{timestamp} - Started screening:\n")
