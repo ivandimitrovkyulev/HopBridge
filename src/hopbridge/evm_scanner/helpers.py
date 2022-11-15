@@ -25,16 +25,17 @@ def print_start_message(arguments: list) -> None:
         from_network = 'ethereum'
         to_network = arg[0].name
         bridge_address = arg[0].contract_address.lower()
-        swap_amount = arg[1]
+        swap_amount = [amount for amount in arg[1]]
         token = arg[2]
         min_amount = arg[3]
 
         min_amount = f"{min_amount:,} {token}"
+        swap_amount = ", ".join(swap_amount)
 
         line = [token, from_network, to_network, swap_amount, min_amount, bridge_address]
         table.append(line)
 
-    columns = ["Token", "From_network", "To_network", "Swap_amount", "Min_amount", "Bridge_address"]
+    columns = ["Token", "From", "To", "Swap_amounts", "Min_arb", "Bridge_address"]
 
     print(tabulate(table, headers=columns, showindex=True,
                    tablefmt="fancy_grid", numalign="left", stralign="left", colalign="left"))
