@@ -25,7 +25,8 @@ def print_start_message(arguments: list) -> None:
         from_network = 'ethereum'
         to_network = arg[0].name
         bridge_address = arg[0].contract_address.lower()
-        swap_amount = [amount for amount in arg[1]]
+        swap_amount = [f"{amount:,}" for amount in arg[1]]
+        print(swap_amount)
         token = arg[2]
         min_amount = arg[3]
 
