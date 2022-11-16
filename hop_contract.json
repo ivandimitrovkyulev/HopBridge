@@ -8,6 +8,7 @@
             "network": "Optimism",
             "coin": "USDC",
             "swap_amount": [50000],
+            "decimals": 6,
             "min_arb": 25
         },
         "USDC_Arbitrum": {
@@ -15,6 +16,7 @@
             "network": "Arbitrum",
             "coin": "USDC",
             "swap_amount": [50000],
+            "decimals": 6,
             "min_arb": 25
         },
         "USDC_Polygon": {
@@ -22,6 +24,7 @@
             "network": "Polygon",
             "coin": "USDC",
             "swap_amount": [50000],
+            "decimals": 6,
             "min_arb": 25
         },
         "USDT_Optimism": {
@@ -29,6 +32,7 @@
             "network": "Optimism",
             "coin": "USDT",
             "swap_amount": [30000],
+            "decimals": 6,
             "min_arb": 25
         },
         "USDT_Arbitrum": {
@@ -36,6 +40,7 @@
             "network": "Arbitrum",
             "coin": "USDT",
             "swap_amount": [30000],
+            "decimals": 6,
             "min_arb": 25
         },
         "USDT_Polygon": {
@@ -43,6 +48,7 @@
             "network": "Polygon",
             "coin": "USDT",
             "swap_amount": [30000],
+            "decimals": 6,
             "min_arb": 25
         },
         "DAI_Optimism": {
@@ -50,6 +56,7 @@
             "network": "Optimism",
             "coin": "DAI",
             "swap_amount": [30000],
+            "decimals": 18,
             "min_arb": 25
         },
         "DAI_Arbitrum": {
@@ -57,6 +64,7 @@
             "network": "Arbitrum",
             "coin": "DAI",
             "swap_amount": [30000],
+            "decimals": 18,
             "min_arb": 25
         },
         "DAI_Polygon": {
@@ -64,6 +72,7 @@
             "network": "Polygon",
             "coin": "DAI",
             "swap_amount": [30000],
+            "decimals": 18,
             "min_arb": 25
         },
         "ETH_Optimism": {
@@ -71,6 +80,7 @@
             "network": "Optimism",
             "coin": "ETH",
             "swap_amount": [50],
+            "decimals": 18,
             "min_arb": 0.025
         },
         "ETH_Arbitrum": {
@@ -78,6 +88,7 @@
             "network": "Arbitrum",
             "coin": "ETH",
             "swap_amount": [50],
+            "decimals": 18,
             "min_arb": 0.025
         },
         "ETH_Polygon": {
@@ -85,6 +96,7 @@
             "network": "Polygon",
             "coin": "ETH",
             "swap_amount": [50],
+            "decimals": 18,
             "min_arb": 0.025
         }
     }

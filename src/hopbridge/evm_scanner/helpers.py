@@ -26,11 +26,11 @@ def print_start_message(arguments: list) -> None:
         to_network = arg[0].name
         bridge_address = arg[0].contract_address.lower()
         swap_amount = [f"{amount:,}" for amount in arg[1]]
-        print(swap_amount)
+
         token = arg[2]
         min_amount = arg[3]
 
-        min_amount = f"{min_amount:,} {token}"
+        min_amount = f"{min_amount} {token}"
         swap_amount = ", ".join(swap_amount)
 
         line = [token, from_network, to_network, swap_amount, min_amount, bridge_address]
@@ -42,20 +42,22 @@ def print_start_message(arguments: list) -> None:
                    tablefmt="fancy_grid", numalign="left", stralign="left", colalign="left"))
 
 
-def calculate_swap(contract: EvmContract, swap_amounts: tuple) -> list:
+def calculate_swap(contract: EvmContract, swap_amounts: tuple, decimals: int) -> list:
     """
     Calculates the swap out amount for an initialised Evm Contract.
 
     :param contract: EvmContract instance
     :param swap_amounts: Amount to swap in
+    :param decimals: Token decimals precision
     :return: Swap out amount
     """
+
     out_amounts = []
     for amount in swap_amounts:
-        func_args = [1, 0, amount * 10 ** 6]
+        func_args = [1, 0, amount * 10 ** decimals]
         try:
             swap_out = EvmContract.run_contract_function(contract.contract, 'calculateSwap', func_args)
-            swap_out = swap_out / 10 ** 6
+            swap_out = swap_out / 10 ** decimals
 
             out_amounts.append(float(swap_out))
 
@@ -65,19 +67,19 @@ def calculate_swap(contract: EvmContract, swap_amounts: tuple) -> list:
     return out_amounts
 
 
-def alert_arb(swap_ins: Iterable, swap_outs: Iterable, coin: str, min_arb: int, network: str) -> None:
+def alert_arb(swap_ins: Iterable, swap_outs: Iterable, token: str, min_arb: int, network: str) -> None:
     """
     Checks if arbitrage >= min_arb_required and alerts via Telegram message.
 
     :param swap_ins: Amounts to swap in
     :param swap_outs: Amounts received
-    :param coin: Name of coin being arbitraged
+    :param token: Name of token being arbitraged
     :param min_arb: Minimum arbitrage required
     :param network: Name of the blockchain network
     :return: None
     """
 
-    url = f"https://app.hop.exchange/#/send?token={coin.upper()}" \
+    url = f"https://app.hop.exchange/#/send?token={token.upper()}" \
           f"&sourceNetwork=ethereum&destNetwork={network.lower()}"
 
     for swap_in, swap_out in zip(swap_ins, swap_outs):
@@ -87,29 +89,30 @@ def alert_arb(swap_ins: Iterable, swap_outs: Iterable, coin: str, min_arb: int, 
             timestamp = datetime.now().astimezone().strftime(time_format)
             color_sign = etherscans[network.lower()][2]
             message = f"{timestamp} - hop_contract\n" \
-                      f"Swap {swap_in:,} {coin} for {swap_out:,.3f} {coin}; ETH -> {network.upper()}{color_sign}\n" \
-                      f"-->Arbitrage: <a href='{url}'>{arbitrage:,.3f} {coin}</a>\n"
+                      f"Swap {swap_in:,} {token} for {swap_out:,.3f} {token}; ETH -> {network.upper()}{color_sign}\n" \
+                      f"-->Arbitrage: <a href='{url}'>{arbitrage:,.3f} {token}</a>\n"
 
             ter_msg = f"{timestamp}\n" \
-                      f"Swap {swap_in:,} {coin} for {swap_out:,.3f} {coin} Ethereum -> {network}\n" \
-                      f"-->Arbitrage: {arbitrage:,.3f} {coin}\n"
+                      f"Swap {swap_in:,} {token} for {swap_out:,.3f} {token} Ethereum -> {network}\n" \
+                      f"-->Arbitrage: {arbitrage:,.3f} {token}\n"
 
             telegram_send_message(message)
             log_arbitrage.info(ter_msg)
 
 
-def check_arb(contract: EvmContract, swap_amounts: tuple, coin: str, min_arb: int):
+def check_arb(contract: EvmContract, swap_amounts: tuple, decimals: int, token: str, min_arb: int) -> None:
     """
     Checks HOP contract for swap out amount and notifies if arbitrage is found.
 
     :param contract: EVM contract instance
     :param swap_amounts: Swap out amounts
-    :param coin: Coin name
+    :param decimals: Token decimals precision
+    :param token: Token name
     :param min_arb: Min arbitrage required
     :return:
     """
     network_name = contract.name
 
-    swap_outs = calculate_swap(contract, swap_amounts)
+    swap_outs = calculate_swap(contract, swap_amounts, decimals)
 
-    alert_arb(swap_amounts, swap_outs, coin, min_arb, network_name)
+    alert_arb(swap_amounts, swap_outs, token, min_arb, network_name)
