@@ -38,6 +38,7 @@ infura_endpoints = {
 
 ankr_endpoints = {
     'ethereum': 'https://rpc.ankr.com/eth',
+    'bsc': 'https://rpc.ankr.com/bsc',
     'optimism': 'https://rpc.ankr.com/optimism',
     'arbitrum': 'https://rpc.ankr.com/arbitrum',
     'polygon': 'https://rpc.ankr.com/polygon',
@@ -46,6 +47,7 @@ ankr_endpoints = {
 
 etherscans = {
     'ethereum': ['https://api.etherscan.io', 'https://etherscan.io', '🔲'],
+    'bsc': ['https://api.bscscan.com', 'https://bscscan.com', '🟧'],
     'arbitrum': ['https://api.arbiscan.io', 'https://arbiscan.io', '🟦'],
     'optimism': ['https://api-optimistic.etherscan.io', 'https://optimistic.etherscan.io', '🟥'],
     'polygon': ['https://api.polygonscan.com', 'https://polygonscan.com', '🟪'],
